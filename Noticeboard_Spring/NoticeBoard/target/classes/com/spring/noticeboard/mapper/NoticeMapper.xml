@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.spring.noticeboard.mapper.NoticeMapper">
+
+	<select id="get"
+		resultType="com.spring.noticeboard.entity.Notice">
+		select * from notice where id=#{id}
+	</select>
+
+	<select id="getCount" resultType="int">
+		select count(*) from notice
+	</select>
+
+	<select id="getAll"
+		resultType="com.spring.noticeboard.entity.Notice">
+		select * from notice
+	</select>
+
+	<insert id="add">
+		insert into notice (id, title, author, body)
+		values(seq_notice.nextval, #{title},#{author},#{body})
+	</insert>
+
+	<update id="update">
+		update notice set title=#{title},body=#{body},"date"=sysdate 
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from notice
+		where id=#{id}
+	</delete>
+
+	<delete id="deleteAll">
+		delete from notice
+	</delete>
+</mapper>
