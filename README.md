@@ -59,7 +59,7 @@ conn = (url.openConnection() as HttpURLConnection).apply {
 ### HttpRequest.ACTION
 ![Action table](https://user-images.githubusercontent.com/81062639/140049557-59c7faf0-3dcd-4f04-9395-cc8448eed8c3.png)
 
-# 서버
+# SERVER
 ## Notice_Server (구 버전)
 #### spring을 사용하지 않고 자바 코드, 수동 DI를 사용.
 한개의 서블릿이 요청을 받아 요청 타입에 따라 해당하는 함수를 호출하고 그결과를 반한한다.
