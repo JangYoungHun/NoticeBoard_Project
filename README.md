@@ -18,11 +18,14 @@ Notice Board App &amp; Spring Server
 ```java
 
     fun connect(action: Action, userData: UserData): ConnectResult {
-        // 서버 켜져있는지 확인 코드 추가 필요
+        // Thread 생성
         val connectThread = ConnectThread(action, userData)
         try {
+        //Thread 실행
             connectThread.start()
             //connectThread.join(3000)
+            
+            //Thread 실행 결과 반환
             return connectThread.getResult()
         } catch (e: Exception) {
             return ConnectResult.SERVER_ERROR
