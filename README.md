@@ -78,7 +78,7 @@ ex) Mybatis Mapper (xml, annotation),
 
 요청 결과 (String 결과, ResponseEntity),
 
-DI (@Autowired, Lombok @Setter()),
+DI (@Autowired, Lombok @Setter())
 
 ## Oracle DataBase 구조
 ![oracle](https://user-images.githubusercontent.com/81062639/140054802-8c3c1ace-e637-4279-b589-64e2de7d189d.PNG)
