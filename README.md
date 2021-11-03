@@ -6,5 +6,10 @@ Notice Board App &amp; Spring Server
 ![007](https://user-images.githubusercontent.com/81062639/140045978-5f7421db-8d28-454d-a19a-1f32f9159143.png)
 ![008](https://user-images.githubusercontent.com/81062639/140045982-92c4a182-79fd-4ca7-b92b-df62f3439943.png)
 
-##서버
-###1. Notice_Server
+## 웹서버 요청 ACTION
+웹서버 요청을 하는 object HttpRequest 
+![그림](https://user-images.githubusercontent.com/81062639/140047969-859f3283-f521-4c01-9fb2-c6daa4d3536f.png)
+
+
+## 서버
+### 1. Notice_Server
