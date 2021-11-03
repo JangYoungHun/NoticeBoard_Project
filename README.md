@@ -6,3 +6,5 @@ Notice Board App &amp; Spring Server
 ![007](https://user-images.githubusercontent.com/81062639/140045978-5f7421db-8d28-454d-a19a-1f32f9159143.png)
 ![008](https://user-images.githubusercontent.com/81062639/140045982-92c4a182-79fd-4ca7-b92b-df62f3439943.png)
 
+##서버
+###1. Notice_Server
