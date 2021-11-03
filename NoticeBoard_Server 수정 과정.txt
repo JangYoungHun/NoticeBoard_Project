@@ -1,0 +1,27 @@
+1. NoticeDAO1 
+
+JDBC2
+userDao.class의 User관련 DB 기능과 notice관련 DB기능 분리 -> userdao, noticedao
+userdao, noticedao에는 기본 커넥션 관련 기능만 구현 -> 추가 기능은 각 userservice, noticeservice로 분리하여 구현
+
+JDBC3
+connection 부분 datasource 사용하여 생성 하고 의존성 주입.
+userDao 코드 상 반복되는 try-catch 문을 템플릿 콜백 구조를 사용하여 JdbcConnection class 로 분리 하여 작성.
+
+JDBC4
+JdbcConnection => JdbcTemplate 사용 하여 dao 수정
+notice delete, 메모 삭제 메소드 추가
+메모의 생성 후 지난 시간을 측정하여 일정기간 후 삭제하는 기능의 함수 생성. Notice class의 isOutdated(), NoticeService의 updateNotices() 함수
+트랜잭션 기능 추가.
+PlatformTransactionManager 트랜잭션 적용
+
+JDBC5
+트랜잭션 기능 수정.
+DynamicProxy 방식 사용 => ProxyFactory Bean 방식 사용
+Transaction Advice 생성, 적용
+
+
+이후
+NoticeBoard_Spring 프로젝트 생성
+
+
