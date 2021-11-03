@@ -4,7 +4,7 @@ Notice Board App &amp; Spring Server
 
 
 # APP
-![tjfaud](https://user-images.githubusercontent.com/81062639/140045708-f094a8a5-c9a3-4ed4-89a5-c47bb9afdd55.PNG)
+![포트폴리오-004](https://user-images.githubusercontent.com/81062639/140050235-d32e4334-5595-414e-8c69-69e0a3ae9bcc.png)
 ![005](https://user-images.githubusercontent.com/81062639/140045936-a6d0da49-7b50-419a-9fe9-effae8468c1c.png)
 ![006](https://user-images.githubusercontent.com/81062639/140045968-229fd883-6c8f-42f8-b2bf-73c226826913.png)
 ![007](https://user-images.githubusercontent.com/81062639/140045978-5f7421db-8d28-454d-a19a-1f32f9159143.png)
@@ -43,3 +43,5 @@ conn = (url.openConnection() as HttpURLConnection).apply {
 
 # 서버
 ### 1. Notice_Server
+#### spring을 사용하지 않고 자바 코드, 수동 DI를 사용.
+한개의 서블릿이 요청을 받아 요청 타입에 따라 해당하는 함수를 호출하고 그결과를 반한한다.
