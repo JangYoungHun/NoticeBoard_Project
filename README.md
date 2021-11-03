@@ -13,6 +13,24 @@ Notice Board App &amp; Spring Server
 
 ## 웹서버 요청 ACTION
 웹서버 요청을 하는 object HttpRequest, 매개변수로 Action을 받아 해당하는 로직을 수행하는 Thread 실행
+
+요청 타입에 따라 Thread를 생성하는 다양한 함수.
+```java
+
+    fun connect(action: Action, userData: UserData): ConnectResult {
+        // 서버 켜져있는지 확인 코드 추가 필요
+        val connectThread = ConnectThread(action, userData)
+        try {
+            connectThread.start()
+            //connectThread.join(3000)
+            return connectThread.getResult()
+        } catch (e: Exception) {
+            return ConnectResult.SERVER_ERROR
+        }
+    }
+     fun connect(action: Action, noticeItem: NoticeItem): ConnectResult{/**/}
+     fun delete( noticeId: Int, action: Action = Action.REMOVE_NOTICE){/**/}
+```
 ```java
 override fun run() {
 
@@ -42,13 +60,21 @@ conn = (url.openConnection() as HttpURLConnection).apply {
 ![Action table](https://user-images.githubusercontent.com/81062639/140049557-59c7faf0-3dcd-4f04-9395-cc8448eed8c3.png)
 
 # 서버
-## Notice_Server
+## Notice_Server (구 버전)
 #### spring을 사용하지 않고 자바 코드, 수동 DI를 사용.
 한개의 서블릿이 요청을 받아 요청 타입에 따라 해당하는 함수를 호출하고 그결과를 반한한다.
 
-### DataBase 구조 
-#### MySQL 사용
-![mysql 구조](https://user-images.githubusercontent.com/81062639/140050994-98679574-5499-480c-8381-ffb7ec594519.PNG)
+5가지 버전의 프로젝트로 구성되어있다.
+각각의 버전 수정관련 내용은 NoticeBoard_Server 수정 과정.txt 확인.
+
+# Notice_Spring
+#### Spring FrameWork를 사용하여 기존의 서버를 Rest 방식으로 재구성한 서버.
+
+## Oracle DataBase 구조
+![oracle](https://user-images.githubusercontent.com/81062639/140054802-8c3c1ace-e637-4279-b589-64e2de7d189d.PNG)
 
 
+
+## REST URI
+![rest uri](https://user-images.githubusercontent.com/81062639/140053856-b3741b07-4215-469e-9bb5-67401c735615.PNG)
 
