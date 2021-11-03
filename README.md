@@ -34,7 +34,7 @@ Notice Board App &amp; Spring Server
      fun connect(action: Action, noticeItem: NoticeItem): ConnectResult{/**/}
      fun delete( noticeId: Int, action: Action = Action.REMOVE_NOTICE){/**/}
 ```
-## Thread run() 
+## ConnectThread run() 
 ```java
 override fun run() {
 
