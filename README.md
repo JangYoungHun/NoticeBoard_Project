@@ -11,7 +11,7 @@ Notice Board App &amp; Spring Server
 ![008](https://user-images.githubusercontent.com/81062639/140045982-92c4a182-79fd-4ca7-b92b-df62f3439943.png)
 
 
-## 웹서버 요청 ACTION
+## 웹서버 요청 
 웹서버 요청을 하는 object HttpRequest, 매개변수로 Action을 받아 해당하는 로직을 수행하는 Thread 실행
 
 요청 타입에 따라 Thread를 생성하는 다양한 함수.
@@ -34,6 +34,7 @@ Notice Board App &amp; Spring Server
      fun connect(action: Action, noticeItem: NoticeItem): ConnectResult{/**/}
      fun delete( noticeId: Int, action: Action = Action.REMOVE_NOTICE){/**/}
 ```
+## Thread run() 
 ```java
 override fun run() {
 
@@ -76,8 +77,177 @@ conn = (url.openConnection() as HttpURLConnection).apply {
 ## Oracle DataBase 구조
 ![oracle](https://user-images.githubusercontent.com/81062639/140054802-8c3c1ace-e637-4279-b589-64e2de7d189d.PNG)
 
-
-
 ## REST URI
 ![rest uri](https://user-images.githubusercontent.com/81062639/140053856-b3741b07-4215-469e-9bb5-67401c735615.PNG)
 
+## User 관련 
+
+### UserMapper
+```java
+public interface UserMapper {
+ 
+    // user 등록
+	@Select("insert into userdata (id, pwd, name, age) "
+			+ "values(#{id}, #{pwd}, #{name}, #{age})")
+	public void add(User user) throws RuntimeException;
+    
+    // 해당 is  조회
+	@Select("select * from userdata where id=#{id}")
+	public User get(String id) throws RuntimeException;
+    
+    //전체 row 갯수 조회
+	@Select("select count(*) from userdata")
+	public int getCount() throws RuntimeException;
+	
+    //전체 row 조회
+	@Select("select * from userdata")
+	public List<User> getAll() throws RuntimeException;
+	
+    // user 
+	@Delete("Delete from userdata")
+	public void deleteAll() throws RuntimeException;
+}
+```
+## UserController
+```java
+@Controller
+@RequestMapping("/user/")
+public class UserController {
+	
+	//User 관련 서비스 Interface
+	@Setter(onMethod_ = {@Autowired})
+	UserService userService;
+	
+	// 사용자 등록 Service
+	@PostMapping("register")
+	@ResponseBody
+	public String register(@RequestBody User user) {
+		return userService.register(user) ? "SUCCESS" : "FAILED";	
+	}
+	// 아이디 중복확인 Service
+	@RequestMapping("idExist")
+	@ResponseBody
+	public String idExist(@RequestParam String id) {		
+		return userService.isIdExist(id) ?  "ID_EXIST" : "ID_NOT_EXIST";	
+	}
+	// 로그인 정보확인 Service
+	@PostMapping("login")
+	@ResponseBody
+	public ResponseEntity<User> login(@RequestBody User user) {	
+		//로그인 성공시 사용자 정보 리턴
+		return userService.login(user) 
+				? new ResponseEntity<User>(userService.get(user.getId()), HttpStatus.OK) 
+				: new ResponseEntity<User>(HttpStatus.INTERNAL_SERVER_ERROR);
+	}	
+}
+```
+
+
+## Notice 관련
+
+### NoticeMapper
+```xml
+public interface NoticeMapper {	
+    // 메모 추가
+	public int add(Notice notice);	
+	//메모 수정
+    public int update(Notice notice);	
+	//메모 삭제
+    public int delete(int id); 
+	//해당 id 메모 조회
+    public Notice get(int id);		
+	//전체 row 갯수 조회
+    public int getCount();
+	//전체 메모 조회
+    public List<Notice> getAll() throws RuntimeException;	
+	//전체 메모 삭제
+    public void deleteAll();
+}
+```
+
+### NoticeMapper.xml
+```java
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.spring.noticeboard.mapper.NoticeMapper">
+    
+    <!-- 해당 id 메모 조회-->
+	<select id="get"
+		resultType="com.spring.noticeboard.entity.Notice">
+		select * from notice where id=#{id}
+	</select>
+
+     <!-- 전체 row 갯수 조회 -->
+	<select id="getCount" resultType="int">
+		select count(*) from notice
+	</select>
+
+    <!-- 전체 메모 조회-->
+	<select id="getAll"
+		resultType="com.spring.noticeboard.entity.Notice">
+		select * from notice
+	</select>
+
+    <!-- 메모 추가 -->
+	<insert id="add">
+		insert into notice (id, title, author, body)
+		values(seq_notice.nextval, #{title},#{author},#{body})
+	</insert>
+
+    <!-- 메모 수정 -->
+	<update id="update">
+		update notice set title=#{title},body=#{body},"date"=sysdate 
+		where id = #{id}
+	</update>
+	
+    <!-- 메모 삭제 -->
+	<delete id="delete">
+		delete from notice
+		where id=#{id}
+	</delete>
+    
+    <!-- 메모 전체 삭제 -->
+	<delete id="deleteAll">
+		delete from notice
+	</delete>
+</mapper>
+```
+
+### NoticeController
+```java
+@RestController
+@RequestMapping("/notice/")
+public class NoticeController {
+	
+	@Autowired
+	NoticeService noticeService;
+	
+	//메모 목록을 받아온다
+	@RequestMapping("getNotices")
+	private List<Notice> getNotices() {
+		return noticeService.getAll();
+	}
+	
+	//메모를 추가한다
+	@PostMapping("addNotice")
+	private String addNotice(@RequestBody Notice notice) {
+		return noticeService.add(notice) ? "SUCCESS" : "FAILED";
+	}
+	
+	// 해당하는 id의 메모를 제거 한다
+	@DeleteMapping(value = "{id}")
+	public void remove(@PathVariable int id) {
+		noticeService.delete(id);
+	}
+	
+	//해당 하는 id의 메모를 수정 한다
+	@PutMapping(value = "{id}")
+	public void update(@PathVariable("id")int id, @RequestBody Notice notice){		
+		notice.setId(id);
+		noticeService.update(notice);
+	}
+}
+
+```
