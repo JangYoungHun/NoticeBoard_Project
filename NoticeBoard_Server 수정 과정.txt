@@ -1,4 +1,3 @@
-1. NoticeDAO1 
 
 JDBC2
 userDao.class의 User관련 DB 기능과 notice관련 DB기능 분리 -> userdao, noticedao
