@@ -71,7 +71,7 @@ conn = (url.openConnection() as HttpURLConnection).apply {
 5가지 버전의 프로젝트로 구성되어있다.
 각각의 버전 수정관련 내용은 NoticeBoard_Server 수정 과정.txt 확인.
 
-# Notice_Spring
+# Noticeboard_Spring
 #### Spring FrameWork를 사용하여 기존의 서버를 Rest 방식으로 재구성한 서버.
 #### 의도적으로 다양한 방식 사용.
 ex) Mybatis Mapper (xml, annotation),  
