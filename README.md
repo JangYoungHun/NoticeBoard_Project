@@ -74,11 +74,15 @@ conn = (url.openConnection() as HttpURLConnection).apply {
 # Notice_Spring
 #### Spring FrameWork를 사용하여 기존의 서버를 Rest 방식으로 재구성한 서버.
 #### 의도적으로 다양한 방식 사용.
-ex) Mybatis Mapper (xml, annotation),
+ex) Mybatis Mapper (xml, annotation),  
+요청 결과 (String 결과, ResponseEntity),  
+DI (@Autowired, Lombok @Setter()),  
+DataBase (MySQL,Oracle)
 
-요청 결과 (String 결과, ResponseEntity),
 
-DI (@Autowired, Lombok @Setter())
+## MySQL DataBase (구버전)
+![mysql 구조](https://user-images.githubusercontent.com/81062639/140284252-35fe21dc-a805-4e43-884b-24da5d2545a6.PNG)
+
 
 ## Oracle DataBase 구조
 ![oracle](https://user-images.githubusercontent.com/81062639/140054802-8c3c1ace-e637-4279-b589-64e2de7d189d.PNG)
