@@ -14,8 +14,7 @@ Notice Board App &amp; Spring Server
 ## 웹서버 요청 
 웹서버 요청을 하는 object HttpRequest, 매개변수로 Action을 받아 해당하는 로직을 수행하는 Thread 실행
 
-
-![dsadsadsad](https://user-images.githubusercontent.com/81062639/140474595-1acbba39-076a-4d7f-b0bf-b01ea34896e7.PNG)
+![캡처](https://user-images.githubusercontent.com/81062639/140474810-f29ec5ea-afaa-4fbd-92d7-1a6f97232e0b.PNG)
 
 
 
