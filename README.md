@@ -97,6 +97,9 @@ DataBase (MySQL,Oracle)
 ## User 관련 
 
 ### UserMapper
+User DataBase에 조회,업데이트,추가,삭제 등의 작업 쿼리를 관리하는 Mybatis Mapper 어노테이션 설정.
+
+
 ```java
 public interface UserMapper {
  
@@ -123,6 +126,10 @@ public interface UserMapper {
 }
 ```
 ## UserController
+유저와 관련된 데이터 Controller. 유저와 관련된 요청을 처리한다.  
+
+
+
 ```java
 @Controller
 @RequestMapping("/user/")
@@ -180,6 +187,10 @@ public interface NoticeMapper {
 ```
 
 ### NoticeMapper.xml
+Notice DataBase에 조회,업데이트,추가,삭제 등의 작업 쿼리를 관리하는 Mybatis Mapper 설정.
+
+
+
 ```java
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper
@@ -230,6 +241,9 @@ public interface NoticeMapper {
 ```
 
 ### NoticeController
+메오와 관련된 데이터 Controller. 메모와 관련된 요청을 처리한다.  
+
+
 ```java
 @RestController
 @RequestMapping("/notice/")
