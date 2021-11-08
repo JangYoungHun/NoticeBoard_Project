@@ -5,7 +5,6 @@ import java.util.List;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Select;
 
-import com.spring.noticeboard.dao.UserDao;
 import com.spring.noticeboard.entity.User;
 
 public interface UserMapper {
@@ -27,3 +26,4 @@ public interface UserMapper {
 	@Delete("Delete from userdata")
 	public void deleteAll() throws RuntimeException;
 }
+

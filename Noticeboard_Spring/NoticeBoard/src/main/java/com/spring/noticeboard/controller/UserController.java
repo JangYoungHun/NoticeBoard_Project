@@ -22,9 +22,7 @@ import lombok.Setter;
 
 @Controller
 @RequestMapping("/user/")
-
 public class UserController {
-	
 	
 	//User 관련 서비스 Interface
 	@Setter(onMethod_ = {@Autowired})
@@ -34,14 +32,12 @@ public class UserController {
 	@PostMapping("register")
 	@ResponseBody
 	public String register(@RequestBody User user) {
-		System.out.println("register-------------------------------------");
 		return userService.register(user) ? "SUCCESS" : "FAILED";	
 	}
 	// 아이디 중복확인 Service
 	@RequestMapping("idExist")
 	@ResponseBody
-	public String idExist(@RequestParam String id) {
-		System.out.println("idExist-------------------------------------");
+	public String idExist(@RequestParam String id) {		
 		return userService.isIdExist(id) ?  "ID_EXIST" : "ID_NOT_EXIST";	
 	}
 	

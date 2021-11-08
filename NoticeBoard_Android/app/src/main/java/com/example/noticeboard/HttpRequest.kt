@@ -114,9 +114,11 @@ object HttpRequest {
 
         override fun run() {
             try {
-                val params:MutableMap<String, Any> = mutableMapOf()
-
                 var message: String = ""
+
+                // 요청시 전달할 Param 목록
+                val params:MutableMap<String, Any> = mutableMapOf()
+                // 요청 종류에 따라 URI, HttpMethod ,Parameter 설정
                 when (action) {
                     Action.CHECK_DUPLICATION -> {
                         serverUrl = "$SERVER_URI/user/idExist?id=${userData.id}"
@@ -178,19 +180,17 @@ object HttpRequest {
                     }
                 }
 
-
                 val url: URL = URL(serverUrl)
+                //요청과 관련된 설정
                 conn = (url.openConnection() as HttpURLConnection).apply {
                     requestMethod = methodType
                     setRequestProperty("Accept-Charset", "UTF-8") // Accept-Charset 설정.
                     setRequestProperty(
                         "Content-Type",  "application/json"
                     )
-
                     connectTimeout = 10000;
                     doOutput = true
                 }
-
                 try {
                     if((methodType=="POST")||(methodType=="PUT")) {
                         val bw = BufferedWriter(OutputStreamWriter(conn.outputStream))
@@ -200,16 +200,15 @@ object HttpRequest {
                     }
                 } catch (e: Exception) {
                     throw e
-                }
-
-
+                }   // 요청 성공시 처리할 로직
                 if (conn.responseCode == HttpURLConnection.HTTP_OK) {
-                    // 요청 성공
+
                     try {
                         Log.d(TAG, "요청 성공")
                         val br = BufferedReader(InputStreamReader(conn.inputStream,"UTF-8"))
-                        var sb:StringBuilder = StringBuilder()
 
+                        //응답으로 받은 데이터 처리
+                        var sb:StringBuilder = StringBuilder()
                         while (true) {
                             val str: String = br.readLine() ?: break
                             sb.append(str)
@@ -218,6 +217,7 @@ object HttpRequest {
                         responseStr = sb.toString()
                         println(responseStr)
 
+                        // 응답으로 받은 데이터 처리.
                         if(action == Action.READ_NOTICE){
                             return
                         }
@@ -225,7 +225,6 @@ object HttpRequest {
                             result = HttpRequest.ConnectResult.SUCCESS
                             return
                         }
-
                         else {
                             result = when (action) {
                                 Action.CHECK_DUPLICATION -> {
@@ -253,21 +252,17 @@ object HttpRequest {
 
                             }
                         }
+
                     } catch (e: SocketTimeoutException) {
                         throw e
                     } catch (e: Exception) {
                         throw e
                     }
-
-
                 } else {
                     result = HttpRequest.ConnectResult.FAILED
                     Log.d(TAG, "실패")
-
                 }
                 conn.disconnect()
-
-
             }catch (e: SocketTimeoutException) {
                 e.printStackTrace()
                 Log.d(TAG, "SERVER 연결 실패")
