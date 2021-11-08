@@ -14,6 +14,10 @@ Notice Board App &amp; Spring Server
 ## 웹서버 요청 
 웹서버 요청을 하는 object HttpRequest, 매개변수로 Action을 받아 해당하는 로직을 수행하는 Thread 실행
 
+![캡처](https://user-images.githubusercontent.com/81062639/140474810-f29ec5ea-afaa-4fbd-92d7-1a6f97232e0b.PNG)
+
+
+
 요청 타입에 따라 Thread를 생성하는 다양한 함수.
 ```java
 
@@ -71,14 +75,18 @@ conn = (url.openConnection() as HttpURLConnection).apply {
 5가지 버전의 프로젝트로 구성되어있다.
 각각의 버전 수정관련 내용은 NoticeBoard_Server 수정 과정.txt 확인.
 
-# Notice_Spring
+# Noticeboard_Spring
 #### Spring FrameWork를 사용하여 기존의 서버를 Rest 방식으로 재구성한 서버.
 #### 의도적으로 다양한 방식 사용.
-ex) Mybatis Mapper (xml, annotation),
+ex) Mybatis Mapper (xml, annotation),  
+요청 결과 (String 결과, ResponseEntity),  
+DI (@Autowired, Lombok @Setter()),  
+DataBase (MySQL,Oracle)
 
-요청 결과 (String 결과, ResponseEntity),
 
-DI (@Autowired, Lombok @Setter())
+## MySQL DataBase (구버전)
+![mysql 구조](https://user-images.githubusercontent.com/81062639/140284252-35fe21dc-a805-4e43-884b-24da5d2545a6.PNG)
+
 
 ## Oracle DataBase 구조
 ![oracle](https://user-images.githubusercontent.com/81062639/140054802-8c3c1ace-e637-4279-b589-64e2de7d189d.PNG)
@@ -89,6 +97,9 @@ DI (@Autowired, Lombok @Setter())
 ## User 관련 
 
 ### UserMapper
+User DataBase에 조회,업데이트,추가,삭제 등의 작업 쿼리를 관리하는 Mybatis Mapper 어노테이션 설정.
+
+
 ```java
 public interface UserMapper {
  
@@ -115,6 +126,10 @@ public interface UserMapper {
 }
 ```
 ## UserController
+유저와 관련된 데이터 Controller. 유저와 관련된 요청을 처리한다.  
+
+
+
 ```java
 @Controller
 @RequestMapping("/user/")
@@ -172,6 +187,10 @@ public interface NoticeMapper {
 ```
 
 ### NoticeMapper.xml
+Notice DataBase에 조회,업데이트,추가,삭제 등의 작업 쿼리를 관리하는 Mybatis Mapper 설정.
+
+
+
 ```java
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper
@@ -222,6 +241,9 @@ public interface NoticeMapper {
 ```
 
 ### NoticeController
+메오와 관련된 데이터 Controller. 메모와 관련된 요청을 처리한다.  
+
+
 ```java
 @RestController
 @RequestMapping("/notice/")
