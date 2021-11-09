@@ -2,6 +2,46 @@
 # NoticeBoard_Project
 Notice Board App &amp; Spring Server
 
+그룹 내에서 공지사항을 작성하고 공유할 수 있는 앱을 제작 하는 프로젝트.  
+앱에서 로그인을 통해 사용자를 인증하고 인증된 구성원들끼리 공지사항을 공유할수 있다.  
+사용자의 정보와 공지의 데이터는 Database 를 이용하여 관리한다.  
+REST 방식을 사용하여 각 요청을 분리하, 요청에 맞는 처리를 하고 처리 결과를 반환하여 앱에서 결과에 따라 화면을 업데이트한다.   
+
+## 사용한 기술 스택
+### Programming Language
+> + Java
+> + kotlin
+
+ 
+### Front-End (Android)
+> - Navigation  
+> - RecyclerView   
+> - httpurlconnection  
+
+
+### Back-End
+> + Spring FrameWork
+> + Mybatis
+> + Mysql
+> + Oracle DataBase
+> + Rest
+
+
+
+
+## 필요한 기능
+### USER 관련
+> + 사용자 회원가입 관련 기능 (id 중복확인, id 등록) 
+> + 로그인 처리
+> + 게시글을 수정 삭제 할 수 있는 권한 처리 (작성자만 수정, 삭제할 수 있다.) 
+> 
+### NOTICE 관련
+> + 새로운 공지를 작성하고 추가하는 기능
+> + 기존의 공지 사항을 수정하고 최종 수정 날짜를 업데이트하는 기능
+> + 공지를 삭제하는 기능
+> + 공지를 조회하는 기능
+
+
 
 # APP
 ![포트폴리오-004](https://user-images.githubusercontent.com/81062639/140050235-d32e4334-5595-414e-8c69-69e0a3ae9bcc.png)
@@ -88,11 +128,15 @@ DataBase (MySQL,Oracle)
 ![mysql 구조](https://user-images.githubusercontent.com/81062639/140284252-35fe21dc-a805-4e43-884b-24da5d2545a6.PNG)
 
 
-## Oracle DataBase 구조
-![oracle](https://user-images.githubusercontent.com/81062639/140054802-8c3c1ace-e637-4279-b589-64e2de7d189d.PNG)
+## Oracle DataBase 구조  
+![oracle](https://user-images.githubusercontent.com/81062639/140054802-8c3c1ace-e637-4279-b589-64e2de7d189d.PNG)  
+
 
 ## REST URI
-![rest uri](https://user-images.githubusercontent.com/81062639/140053856-b3741b07-4215-469e-9bb5-67401c735615.PNG)
+각 요청별 URI 와 요청 방식(HttpMethod)를 정의해 놓은 표.  
+
+
+![rest uri](https://user-images.githubusercontent.com/81062639/140053856-b3741b07-4215-469e-9bb5-67401c735615.PNG)  
 
 ## User 관련 
 
@@ -190,7 +234,6 @@ public interface NoticeMapper {
 Notice DataBase에 조회,업데이트,추가,삭제 등의 작업 쿼리를 관리하는 Mybatis Mapper 설정.
 
 
-
 ```java
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper
@@ -241,7 +284,7 @@ Notice DataBase에 조회,업데이트,추가,삭제 등의 작업 쿼리를 관
 ```
 
 ### NoticeController
-메오와 관련된 데이터 Controller. 메모와 관련된 요청을 처리한다.  
+메오와 관련된 데이터 Controller. 메모와 관련된 요청을 처리하는 Controller.
 
 
 ```java
