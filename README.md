@@ -50,6 +50,7 @@ REST 방식을 사용하여 각 요청을 분리하, 요청에 맞는 처리를 
 ![007](https://user-images.githubusercontent.com/81062639/140045978-5f7421db-8d28-454d-a19a-1f32f9159143.png)
 ![008](https://user-images.githubusercontent.com/81062639/140045982-92c4a182-79fd-4ca7-b92b-df62f3439943.png)
 
+# Server
 
 ## 웹서버 요청 
 웹서버 요청을 하는 object HttpRequest, 매개변수로 Action을 받아 해당하는 로직을 수행하는 Thread 실행
@@ -77,9 +78,24 @@ REST 방식을 사용하여 각 요청을 분리하, 요청에 맞는 처리를 
     }
      fun connect(action: Action, noticeItem: NoticeItem): ConnectResult{/**/}
      fun delete( noticeId: Int, action: Action = Action.REMOVE_NOTICE){/**/}
-```
-## ConnectThread run() 
+```  
+
+
+## ConnectThread
+
+실제 요청에 필요한 URI를 생성하고 설정한다.  
+요청에 필요한 Parameter 들을 설정하고 실제 요청을 보내 결과를 받아 처리하는 Thread  
+
+
 ```java
+
+class ConnectThread{
+
+	/*
+	*
+	* 중략
+	*/
+
 override fun run() {
 
 // 요청시 전달할 Param 목록
@@ -99,7 +115,7 @@ conn = (url.openConnection() as HttpURLConnection).apply {
  if (conn.responseCode == HttpURLConnection.HTTP_OK){/*...*/}
  //요청 실패시 수행할 로직
  else{/*...*/}
- 
+ }
 }
 ```
 
