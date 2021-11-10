@@ -688,4 +688,21 @@ class UserInfo(var context: Context) {
         }
 ```
 
+### User Controller  
+로그인 정보를 확인하는 요청을 처리하는 User Controller  
+
+
+```java
+	// 로그인 정보확인 Service
+	@PostMapping("login")
+	@ResponseBody
+	public ResponseEntity<User> login(@RequestBody User user) {	
+		//로그인 성공시 사용자 정보 리턴
+		return userService.login(user) 
+			// 로그인 성공시 User(사용자의 정보 class)를 반환 한다.
+			? new ResponseEntity<User>(userService.get(user.getId()), HttpStatus.OK) 
+			: new ResponseEntity<User>(HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+	
+```
 
