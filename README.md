@@ -121,10 +121,13 @@ conn = (url.openConnection() as HttpURLConnection).apply {
 
 ## 요청 ACTION 종류
 ### HttpRequest.action
+
 ![Action table](https://user-images.githubusercontent.com/81062639/140049557-59c7faf0-3dcd-4f04-9395-cc8448eed8c3.png)
 
 ## 요청 결과 종류
 ### HttpRequest.RequestResult
+
+![HTTPrequest result](https://user-images.githubusercontent.com/81062639/141058153-fa6a9025-16ec-436b-a9a5-e920983042cd.png)
 
 # SERVER
 ## Notice_Server (구 버전)
@@ -137,10 +140,11 @@ conn = (url.openConnection() as HttpURLConnection).apply {
 # Noticeboard_Spring
 #### Spring FrameWork를 사용하여 기존의 서버를 Rest 방식으로 재구성한 서버.
 #### 의도적으로 다양한 방식 사용.
-ex) Mybatis Mapper (xml, annotation),  
-요청 결과 (String 결과, ResponseEntity),  
-DI (@Autowired, Lombok @Setter()),  
-DataBase (MySQL,Oracle)
+ex)
+> + Mybatis Mapper (xml, annotation),  
+> + 요청 결과 (String 결과, ResponseEntity),  
+> + DI (@Autowired, Lombok @Setter()),  
+> + DataBase (MySQL,Oracle)
 
 
 ## MySQL DataBase (구버전)
