@@ -120,8 +120,11 @@ conn = (url.openConnection() as HttpURLConnection).apply {
 ```
 
 ## 요청 ACTION 종류
-### HttpRequest.ACTION
+### HttpRequest.action
 ![Action table](https://user-images.githubusercontent.com/81062639/140049557-59c7faf0-3dcd-4f04-9395-cc8448eed8c3.png)
+
+## 요청 결과 종류
+### HttpRequest.RequestResult
 
 # SERVER
 ## Notice_Server (구 버전)
