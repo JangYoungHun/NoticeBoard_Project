@@ -440,8 +440,8 @@ createUserData()는 사용자가 입력한 정보로 UserData 객체를 생성�
 	@PostMapping("register")
 	@ResponseBody
 	public ResponseEntity<String> register(@RequestBody User user) {
-		return userService.register(user)? 
-				new ResponseEntity<String>(HttpStatus.OK) 
-				: new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);	
+		return userService.register(user)
+			? new ResponseEntity<String>(HttpStatus.OK) 
+			: new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);	
 	}
 ```
