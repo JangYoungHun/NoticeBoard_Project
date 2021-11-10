@@ -146,8 +146,10 @@ HttpRequest의 checkIdExist()를 호출하여 서버에 요청을 보낸다.
                     HttpRequest.RequestResult.NOT_DUPLICATE -> {
                         showToast("사용 가능한 아이디 입니다.")
                         println("사용 가능한 아이디 ")
+			
 			// 중복확인 결과를 저장한다.
                         id_check = true
+			
 			// 중복확인 버튼의 TEXT를 변경한다.
                         (it as Button).text = "사용가능"
                     }
@@ -155,8 +157,10 @@ HttpRequest의 checkIdExist()를 호출하여 서버에 요청을 보낸다.
                     HttpRequest.RequestResult.DUPLICATE -> {
                         showToast("중복된 아이디 입니다.")
                         println("중복된 아이디 ")
+			
 			// 중복확인 결과를 저장한다.
                         id_check = false
+			
 			// 중복확인 버튼의 TEXT를 변경한다.
                         (it as Button).text = "중복확인"
                     }
@@ -177,6 +181,7 @@ HttpRequest의 checkIdExist()를 호출하여 서버에 요청을 보낸다.
 
 #### HttpRequest checkIdExist()
 ID 중복 확인 요청을 하는 Connection Thread를 생성하고 실행하는 함수  
+
 
 ```kotlin 
   // ID 중복 확인 후 결과 RequestResult 반환
@@ -199,38 +204,47 @@ ID 중복 확인 요청을 하는 Connection Thread를 생성하고 실행하는
     }
 ```
 ### ConnectThread
-요청에 필요한 설정을 하고 URI를 생성하고 실제로 요청을 보내 결과를 받는 Thread
+요청에 필요한 설정을 하고 URI를 생성하고 실제로 요청을 보내 결과를 받는 Thread  
+중복된 id인 경우 "ID_EXIST" 문자열이, 사용가능한 id인경우 "ID_NOT_EXIST" 문자열이  responseStr에 저장된다.  
+
 
 ```kotlin
  class ConnectThread(var action: Action) : Thread() {
 
         private var result = HttpRequest.RequestResult.SERVER_ERROR
+	
 	// 중복 확인 하려는 ID
         private var id = ""
-
+	
+	// 요청의 결과로 받은 문자열을 저장할 변수
+   	private var responseStr = ""
+	
         constructor(action: Action, id: String) : this(action) {
             this.id = id
         }
 	
 	// 요청의 결과를 반환하는 함수
         fun getResult(): RequestResult = result
+	
 	// 요청의 결과로 문자열을 받는경우 결과 문자열을 반환하는 함수
         fun getResultStr(): String = responseStr
-        override fun run() {
+	
+ 	override fun run() {
             try {
+                var message: String = ""
+
                 // 요청시 전달할 Param 목록
                 val params:MutableMap<String, Any> = mutableMapOf()
 		
                 // 요청 종류에 따라 URI, HttpMethod ,Parameter 설정
                 when (action) {
                     Action.CHECK_DUPLICATION -> {
-		    // 요청 주소와 HttpMethod를 설정한다.
                         serverUrl = "$SERVER_URI/user/idExist?id=${id}"
                         methodType="GET"
                     }
 		    
-                /*    중략    */	
-		
+                 	/* 중략 */
+			
                 }
 
                 val url: URL = URL(serverUrl)
@@ -244,20 +258,12 @@ ID 중복 확인 요청을 하는 Connection Thread를 생성하고 실행하는
                     connectTimeout = 10000;
                     doOutput = true
                 }
-                try {
-                     if(params.isNotEmpty()) {
-                            val bw = BufferedWriter(OutputStreamWriter(conn.outputStream))
-                            bw.write(mapToJson(params))
-                            bw.flush()
-                            bw.close()
-                     }
-
-                } catch (e: Exception) {
-                    throw e
-                }   // 요청 성공시 처리할 로직
+	
+                     /* 중략 */
+		     
+                // 요청 성공시 처리할 로직
                 if (conn.responseCode == HttpURLConnection.HTTP_OK) {
 
-                    try {
                         Log.d(TAG, "요청 성공")
                         val br = BufferedReader(InputStreamReader(conn.inputStream,"UTF-8"))
 
@@ -280,32 +286,30 @@ ID 중복 확인 요청을 하는 Connection Thread를 생성하고 실행하는
                                     }
                                 }
                                 else -> RequestResult.SUCCESS
-
                             }
-
-
-                    } catch (e: SocketTimeoutException) {
-                        throw e
-                    } catch (e: Exception) {
-                        throw e
-                    }
-                } else {
+		
+                } 
+		//요청 실패시 처리.
+		else {
                     result = HttpRequest.RequestResult.FAILED
                     Log.d(TAG, "실패")
                 }
-                conn.disconnect()
-            }catch (e: SocketTimeoutException) {
-                e.printStackTrace()
-                Log.d(TAG, "SERVER 연결 실패")
-                return
             }
             catch (e: Exception) {
                 e.printStackTrace()
                 Log.d(TAG, "SERVER 연결 실패")
                 return
             }
+	   finally {
+                if(conn != null)
+                  conn.disconnect()
+            }
         }
-
-    }
 ```
+
+#### 회원 가입 버튼  
+회원 가입버튼을 활성화 하기 위해서는 모든 입력칸을 채워야하며, ID 중복확인을 필수적으로 진행 해야만한다.   
+ID 중복확인시 중복확인 버튼의 TEXT가 (중복확인 -> 사용가능) 변경된다.
+
+![캡dasd처](https://user-images.githubusercontent.com/81062639/141126987-0426fab1-36c4-4afe-b383-593b8b304f78.PNG)
 
