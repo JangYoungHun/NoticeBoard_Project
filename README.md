@@ -54,13 +54,16 @@ REST 방식을 사용하여 각 요청을 분리하, 요청에 맞는 처리를 
 
 ## 웹서버 요청 
 웹서버 요청을 하는 object HttpRequest, 매개변수로 Action을 받아 해당하는 로직을 수행하는 Thread 실행
+요청에 필요한 parameter 에 따라 함수가 분류되고 정의 된다.
 
 ![캡처](https://user-images.githubusercontent.com/81062639/140474810-f29ec5ea-afaa-4fbd-92d7-1a6f97232e0b.PNG)
 
 
 
-요청 타입에 따라 Thread를 생성하는 다양한 함수.
+요청 타입에 따라 Thread를 생성하는 다양한 함수
 ```java
+
+// 유저와 관련된 요청을 처리하는 Method
 
     fun connect(action: Action, userData: UserData): ConnectResult {
         // Thread 생성
@@ -76,7 +79,10 @@ REST 방식을 사용하여 각 요청을 분리하, 요청에 맞는 처리를 
             return ConnectResult.SERVER_ERROR
         }
     }
+    
+// 메모와 관련된 요청을 처리하는 Method
      fun connect(action: Action, noticeItem: NoticeItem): ConnectResult{/**/}
+// 메모 관련 중 삭제 요청 메소드     
      fun delete( noticeId: Int, action: Action = Action.REMOVE_NOTICE){/**/}
 ```  
 
