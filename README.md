@@ -96,6 +96,103 @@ ex)
 > + DataBase (MySQL,Oracle)
 
 
+## MyBatis
+사용자와 메모 DataBase에 접속하여 CRUD 처리를 Mybatis를 사용하여 처리 했습니다.
+
+### UserMapper
+사용자 관련 DabaBase 
+어노테이션을 사용하여 작성
+
+```java
+
+public interface UserMapper {
+
+	@Select("insert into userdata (id, pwd, name, age) "
+			+ "values(#{id}, #{pwd}, #{name}, #{age})")
+	
+	public void add(User user) throws RuntimeException;
+
+	@Select("select * from userdata where id=#{id}")
+	public User get(String id) throws RuntimeException;
+
+	@Select("select count(*) from userdata")
+	public int getCount() throws RuntimeException;
+	
+	@Select("select * from userdata")
+	public List<User> getAll() throws RuntimeException;
+	
+	@Delete("Delete from userdata")
+	public void deleteAll() throws RuntimeException;
+}
+
+```
+### NoticeMapper
+메모 관련 DabaBase   
+어노테이션을 사용하지않고 xml을 사용  
+
+```java
+public interface NoticeMapper {
+	
+	public int add(Notice notice);
+	
+	public int update(Notice notice);
+	
+	public int delete(int id);
+ 
+	public Notice get(int id);
+		
+	public int getCount();
+
+	public List<Notice> getAll() throws RuntimeException;
+	
+	public void deleteAll();
+}
+```
+
+### NoticeMapper.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.spring.noticeboard.mapper.NoticeMapper">
+
+	<select id="get"
+		resultType="com.spring.noticeboard.entity.Notice">
+		select * from notice where id=#{id}
+	</select>
+
+	<select id="getCount" resultType="int">
+		select count(*) from notice
+	</select>
+
+	<select id="getAll"
+		resultType="com.spring.noticeboard.entity.Notice">
+		select * from notice order by "date" DESC
+	</select>
+
+	<insert id="add">
+		insert into notice (id, title, author, body)
+		values(seq_notice.nextval, #{title},#{author},#{body})
+	</insert>
+
+	<update id="update">
+		update notice set title=#{title},body=#{body},"date"=sysdate 
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from notice
+		where id=#{id}
+	</delete>
+
+	<delete id="deleteAll">
+		delete from notice
+	</delete>
+</mapper>
+```
+
 ## REST URI
 각 요청별 URI 와 요청 방식(HttpMethod)를 정의해 놓은 표.  
 
