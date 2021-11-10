@@ -49,22 +49,6 @@ REST 방식을 사용하여 각 요청을 분리하, 요청에 맞는 처리를 
 ![007](https://user-images.githubusercontent.com/81062639/140045978-5f7421db-8d28-454d-a19a-1f32f9159143.png)
 ![008](https://user-images.githubusercontent.com/81062639/140045982-92c4a182-79fd-4ca7-b92b-df62f3439943.png)
 
-## 웹서버 요청 
-웹서버 요청을 하는 object HttpRequest, 매개변수로 Action을 받아 해당하는 로직을 수행하는 Thread 실행
-요청에 필요한 parameter 에 따라 함수가 분류되고 정의 된다.
-
-![캡처](https://user-images.githubusercontent.com/81062639/140474810-f29ec5ea-afaa-4fbd-92d7-1a6f97232e0b.PNG)
-
-
-## 요청 ACTION 종류
-### HttpRequest.action
-
-![Action table](https://user-images.githubusercontent.com/81062639/140049557-59c7faf0-3dcd-4f04-9395-cc8448eed8c3.png)
-
-## 요청 결과 종류
-### HttpRequest.RequestResult
-
-![HTTPrequest result](https://user-images.githubusercontent.com/81062639/141058153-fa6a9025-16ec-436b-a9a5-e920983042cd.png)
 
 ## Oracle DataBase 구조  
 사용자 관련 데이터를 관리하는 User Table과 메모관련 데이터를 관리하는 Notice Table의 구성이다.  
@@ -93,7 +77,6 @@ data class UserData(var name:String, var age:Int, var id:String, var pwd:String)
 */
 data class NoticeItem(var id: Int, var title:String, var author:String, val body:String, var date:String){}
 ```
-
 # Server
 ## Notice_Server (구 버전)
 #### spring을 사용하지 않고 자바 코드, 수동 DI를 사용.
@@ -115,190 +98,214 @@ ex)
 ## REST URI
 각 요청별 URI 와 요청 방식(HttpMethod)를 정의해 놓은 표.  
 
-
 ![rest uri](https://user-images.githubusercontent.com/81062639/140053856-b3741b07-4215-469e-9bb5-67401c735615.PNG)  
 
-## User 관련 
 
-### UserMapper
-User DataBase에 조회,업데이트,추가,삭제 등의 작업 쿼리를 관리하는 Mybatis Mapper 어노테이션 설정.
+## 웹서버 요청 
+웹서버 요청을 하는 object HttpRequest, 매개변수로 Action을 받아 해당하는 로직을 수행하는 Thread 실행
+요청에 필요한 parameter 에 따라 함수가 분류되고 정의 된다.
+
+![캡처](https://user-images.githubusercontent.com/81062639/140474810-f29ec5ea-afaa-4fbd-92d7-1a6f97232e0b.PNG)
 
 
-```java
-public interface UserMapper {
- 
-    // user 등록
-	@Select("insert into userdata (id, pwd, name, age) "
-			+ "values(#{id}, #{pwd}, #{name}, #{age})")
-	public void add(User user) throws RuntimeException;
-    
-    // 해당 is  조회
-	@Select("select * from userdata where id=#{id}")
-	public User get(String id) throws RuntimeException;
-    
-    //전체 row 갯수 조회
-	@Select("select count(*) from userdata")
-	public int getCount() throws RuntimeException;
+## 요청 ACTION 종류
+### HttpRequest.action
+
+![Action table](https://user-images.githubusercontent.com/81062639/140049557-59c7faf0-3dcd-4f04-9395-cc8448eed8c3.png)
+
+## 요청 결과 종류
+### HttpRequest.RequestResult
+
+![HTTPrequest result](https://user-images.githubusercontent.com/81062639/141058153-fa6a9025-16ec-436b-a9a5-e920983042cd.png)
+
+
+## 회원 가입
+
+### ID 중복 확인 요청
+회원 가입 화면에서 원하는 id를 입력하고 id 중복확인 버튼을 누르면 해당 id 의 존재 여부를 확인하기 위해  
+HttpRequest의 checkIdExist()를 호출하여 서버에 요청을 보낸다.     
+요청을 받은 서버는 User DataBase를 조회하여 중복 확인 결과를 반환한다.  
+
+#### 회원 가입 화면 중복확인 버튼 
+```kotlin
+
+  v = inflater.inflate(R.layout.fragment_create_account, container, false)
+
+        //아이디 중복확인 버튼
+        v.btn_idCheck.setOnClickListener {
 	
-    //전체 row 조회
-	@Select("select * from userdata")
-	public List<User> getAll() throws RuntimeException;
-	
-    // user 
-	@Delete("Delete from userdata")
-	public void deleteAll() throws RuntimeException;
-}
-```
-## UserController
-유저와 관련된 데이터 Controller. 유저와 관련된 요청을 처리한다.  
+	   // 현재 입력한 id (중복확인할 id) 
+            val idInput =v.editText_id.text.toString()
 
+            // 입력한 id가 올바른 형식으로 작성되었는지 확인.
+            if(idValidity(idInput)) {
+		
+		//id 중복확인 요청 
+                when (HttpRequest.checkIdExist(id = idInput)) {
+	            // 사용가능한 id인 경우
+                    HttpRequest.RequestResult.NOT_DUPLICATE -> {
+                        showToast("사용 가능한 아이디 입니다.")
+                        println("사용 가능한 아이디 ")
+			// 중복확인 결과를 저장한다.
+                        id_check = true
+			// 중복확인 버튼의 TEXT를 변경한다.
+                        (it as Button).text = "사용가능"
+                    }
+		    // 중복된 id인 경우
+                    HttpRequest.RequestResult.DUPLICATE -> {
+                        showToast("중복된 아이디 입니다.")
+                        println("중복된 아이디 ")
+			// 중복확인 결과를 저장한다.
+                        id_check = false
+			// 중복확인 버튼의 TEXT를 변경한다.
+                        (it as Button).text = "중복확인"
+                    }
 
+                    HttpRequest.RequestResult.SERVER_ERROR -> {
+                        showToast("서버에 문제가 발생하였습니다.")
+                    }
 
-```java
-@Controller
-@RequestMapping("/user/")
-public class UserController {
-	
-	//User 관련 서비스 Interface
-	@Setter(onMethod_ = {@Autowired})
-	UserService userService;
-	
-	// 사용자 등록 Service
-	@PostMapping("register")
-	@ResponseBody
-	public String register(@RequestBody User user) {
-		return userService.register(user) ? "SUCCESS" : "FAILED";	
-	}
-	// 아이디 중복확인 Service
-	@RequestMapping("idExist")
-	@ResponseBody
-	public String idExist(@RequestParam String id) {		
-		return userService.isIdExist(id) ?  "ID_EXIST" : "ID_NOT_EXIST";	
-	}
-	// 로그인 정보확인 Service
-	@PostMapping("login")
-	@ResponseBody
-	public ResponseEntity<User> login(@RequestBody User user) {	
-		//로그인 성공시 사용자 정보 리턴
-		return userService.login(user) 
-				? new ResponseEntity<User>(userService.get(user.getId()), HttpStatus.OK) 
-				: new ResponseEntity<User>(HttpStatus.INTERNAL_SERVER_ERROR);
-	}	
-}
-```
-
-
-## Notice 관련
-
-### NoticeMapper
-```xml
-public interface NoticeMapper {	
-    // 메모 추가
-	public int add(Notice notice);	
-	//메모 수정
-    public int update(Notice notice);	
-	//메모 삭제
-    public int delete(int id); 
-	//해당 id 메모 조회
-    public Notice get(int id);		
-	//전체 row 갯수 조회
-    public int getCount();
-	//전체 메모 조회
-    public List<Notice> getAll() throws RuntimeException;	
-	//전체 메모 삭제
-    public void deleteAll();
-}
+                    else -> {
+                    }
+                }
+            }
+            // 입력한 id가 올바른 형식으로 작성되지 않은 경우
+            else
+                showToast("아이디의 길이는 4 이상 10이하 입니다.")
+        }
 ```
 
-### NoticeMapper.xml
-Notice DataBase에 조회,업데이트,추가,삭제 등의 작업 쿼리를 관리하는 Mybatis Mapper 설정.
+#### HttpRequest checkIdExist()
+ID 중복 확인 요청을 하는 Connection Thread를 생성하고 실행하는 함수  
 
+```kotlin 
+  // ID 중복 확인 후 결과 RequestResult 반환
+    // RequestResult.DUPLICATE  ID 중복
+    // RequestResult.NOT_DUPLICATE  ID 사용가능
+    fun checkIdExist(action: Action = Action.CHECK_DUPLICATION , id:String): RequestResult{
+        // 요청 Thread 생성
+        val connectThread = ConnectThread(action, id)
+        try {
+            // 요청 시작
+            connectThread.start()
+            // 요청 결과 대기 타임아웃 3초
+            connectThread.join(3000)
+            // 요청 결과 반환
+            return connectThread.getResult()
+        } catch (e: Exception) {
+            // 에러 발생시 리턴
+            return RequestResult.SERVER_ERROR;
+        }
+    }
+```
+### ConnectThread
+요청에 필요한 설정을 하고 URI를 생성하고 실제로 요청을 보내 결과를 받는 Thread
 
-```java
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper
-        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.spring.noticeboard.mapper.NoticeMapper">
-    
-    <!-- 해당 id 메모 조회-->
-	<select id="get"
-		resultType="com.spring.noticeboard.entity.Notice">
-		select * from notice where id=#{id}
-	</select>
+```kotlin
+ class ConnectThread(var action: Action) : Thread() {
 
-     <!-- 전체 row 갯수 조회 -->
-	<select id="getCount" resultType="int">
-		select count(*) from notice
-	</select>
+        private var result = HttpRequest.RequestResult.SERVER_ERROR
+	// 중복 확인 하려는 ID
+        private var id = ""
 
-    <!-- 전체 메모 조회-->
-	<select id="getAll"
-		resultType="com.spring.noticeboard.entity.Notice">
-		select * from notice
-	</select>
-
-    <!-- 메모 추가 -->
-	<insert id="add">
-		insert into notice (id, title, author, body)
-		values(seq_notice.nextval, #{title},#{author},#{body})
-	</insert>
-
-    <!-- 메모 수정 -->
-	<update id="update">
-		update notice set title=#{title},body=#{body},"date"=sysdate 
-		where id = #{id}
-	</update>
+        constructor(action: Action, id: String) : this(action) {
+            this.id = id
+        }
 	
-    <!-- 메모 삭제 -->
-	<delete id="delete">
-		delete from notice
-		where id=#{id}
-	</delete>
-    
-    <!-- 메모 전체 삭제 -->
-	<delete id="deleteAll">
-		delete from notice
-	</delete>
-</mapper>
+	// 요청의 결과를 반환하는 함수
+        fun getResult(): RequestResult = result
+	// 요청의 결과로 문자열을 받는경우 결과 문자열을 반환하는 함수
+        fun getResultStr(): String = responseStr
+        override fun run() {
+            try {
+                // 요청시 전달할 Param 목록
+                val params:MutableMap<String, Any> = mutableMapOf()
+		
+                // 요청 종류에 따라 URI, HttpMethod ,Parameter 설정
+                when (action) {
+                    Action.CHECK_DUPLICATION -> {
+		    // 요청 주소와 HttpMethod를 설정한다.
+                        serverUrl = "$SERVER_URI/user/idExist?id=${id}"
+                        methodType="GET"
+                    }
+		    
+                /*    중략    */	
+		
+                }
+
+                val url: URL = URL(serverUrl)
+                //요청과 관련된 설정
+                conn = (url.openConnection() as HttpURLConnection).apply {
+                    requestMethod = methodType
+                    setRequestProperty("Accept-Charset", "UTF-8") // Accept-Charset 설정.
+                    setRequestProperty(
+                        "Content-Type",  "application/json"
+                    )
+                    connectTimeout = 10000;
+                    doOutput = true
+                }
+                try {
+                     if(params.isNotEmpty()) {
+                            val bw = BufferedWriter(OutputStreamWriter(conn.outputStream))
+                            bw.write(mapToJson(params))
+                            bw.flush()
+                            bw.close()
+                     }
+
+                } catch (e: Exception) {
+                    throw e
+                }   // 요청 성공시 처리할 로직
+                if (conn.responseCode == HttpURLConnection.HTTP_OK) {
+
+                    try {
+                        Log.d(TAG, "요청 성공")
+                        val br = BufferedReader(InputStreamReader(conn.inputStream,"UTF-8"))
+
+                        //응답으로 받은 데이터 처리
+                        var sb:StringBuilder = StringBuilder()
+                        while (true) {
+                            val str: String = br.readLine() ?: break
+                            sb.append(str)
+                        }
+                        br.close()
+                        responseStr = sb.toString()
+                        println(responseStr)
+
+                            result = when (action) {
+                                Action.CHECK_DUPLICATION -> {
+                                    when (responseStr) {
+                                        "ID_NOT_EXIST" -> RequestResult.NOT_DUPLICATE
+                                        "ID_EXIST" -> RequestResult.DUPLICATE
+                                        else -> RequestResult.FAILED
+                                    }
+                                }
+                                else -> RequestResult.SUCCESS
+
+                            }
+
+
+                    } catch (e: SocketTimeoutException) {
+                        throw e
+                    } catch (e: Exception) {
+                        throw e
+                    }
+                } else {
+                    result = HttpRequest.RequestResult.FAILED
+                    Log.d(TAG, "실패")
+                }
+                conn.disconnect()
+            }catch (e: SocketTimeoutException) {
+                e.printStackTrace()
+                Log.d(TAG, "SERVER 연결 실패")
+                return
+            }
+            catch (e: Exception) {
+                e.printStackTrace()
+                Log.d(TAG, "SERVER 연결 실패")
+                return
+            }
+        }
+
+    }
 ```
 
-### NoticeController
-메오와 관련된 데이터 Controller. 메모와 관련된 요청을 처리하는 Controller.
-
-
-```java
-@RestController
-@RequestMapping("/notice/")
-public class NoticeController {
-	
-	@Autowired
-	NoticeService noticeService;
-	
-	//메모 목록을 받아온다
-	@RequestMapping("getNotices")
-	private List<Notice> getNotices() {
-		return noticeService.getAll();
-	}
-	
-	//메모를 추가한다
-	@PostMapping("addNotice")
-	private String addNotice(@RequestBody Notice notice) {
-		return noticeService.add(notice) ? "SUCCESS" : "FAILED";
-	}
-	
-	// 해당하는 id의 메모를 제거 한다
-	@DeleteMapping(value = "{id}")
-	public void remove(@PathVariable int id) {
-		noticeService.delete(id);
-	}
-	
-	//해당 하는 id의 메모를 수정 한다
-	@PutMapping(value = "{id}")
-	public void update(@PathVariable("id")int id, @RequestBody Notice notice){		
-		notice.setId(id);
-		noticeService.update(notice);
-	}
-}
-
-```
