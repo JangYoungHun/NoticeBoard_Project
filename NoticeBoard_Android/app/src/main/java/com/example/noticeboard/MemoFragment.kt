@@ -48,13 +48,13 @@ class MemoFragment : Fragment() {
                         // 웹서버에 memo 추가 요청 보내기
                         when (HttpRequest.connect(HttpRequest.Action.ADD_NOTICE, item)) {
 
-                            HttpRequest.ConnectResult.SUCCESS -> {
+                            HttpRequest.RequestResult.SUCCESS -> {
                                 showToast("메모 추가 성공")
                             }
-                            HttpRequest.ConnectResult.FAILED -> {
+                            HttpRequest.RequestResult.FAILED -> {
                                 showToast("메모 추가 실패")
                             }
-                            HttpRequest.ConnectResult.SERVER_ERROR -> {
+                            HttpRequest.RequestResult.SERVER_ERROR -> {
                                 showToast("서버에 문제가 발생하였습니다.")
                             }
                         }

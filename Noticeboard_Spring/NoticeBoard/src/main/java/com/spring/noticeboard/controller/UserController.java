@@ -31,9 +31,12 @@ public class UserController {
 	// 사용자 등록 Service
 	@PostMapping("register")
 	@ResponseBody
-	public String register(@RequestBody User user) {
-		return userService.register(user) ? "SUCCESS" : "FAILED";	
+	public ResponseEntity<String> register(@RequestBody User user) {
+		return userService.register(user)? 
+				new ResponseEntity<String>(HttpStatus.OK) 
+				: new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);	
 	}
+	
 	// 아이디 중복확인 Service
 	@RequestMapping("idExist")
 	@ResponseBody
@@ -47,6 +50,7 @@ public class UserController {
 	public ResponseEntity<User> login(@RequestBody User user) {	
 		//로그인 성공시 사용자 정보 리턴
 		return userService.login(user) 
+				// 로그인 성공시 User(사용자의 정보 class)를 반환 한다.
 				? new ResponseEntity<User>(userService.get(user.getId()), HttpStatus.OK) 
 				: new ResponseEntity<User>(HttpStatus.INTERNAL_SERVER_ERROR);
 	}

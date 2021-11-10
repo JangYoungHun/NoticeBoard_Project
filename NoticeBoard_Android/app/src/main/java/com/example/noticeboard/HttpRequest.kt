@@ -1,9 +1,6 @@
 package com.example.noticeboard
 
-import android.app.Application
-import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import java.lang.Exception
 import java.lang.StringBuilder
 import java.net.HttpURLConnection
@@ -27,7 +24,7 @@ object HttpRequest {
         UPDATE_NOTICE
     }
 
-    enum class ConnectResult {
+    enum class RequestResult {
         SERVER_ERROR,
         SUCCESS,
         FAILED,
@@ -35,14 +32,14 @@ object HttpRequest {
         NOT_DUPLICATE
     }
 
-    // private const val SERVER_URI: String = "http://172.30.1.40:8888/UserDAO"
-    private const val SERVER_URI: String = "http://mrjangsserver.ddns.net:8888"
+
+    private const val SERVER_URI: String = "http://172.30.1.40:8080"
     private var serverUrl:String = ""
     private const val TAG: String = "HttpRequestLOG"
     var methodType:String = ""
 
 
-    fun connect(action: Action, userData: UserData): ConnectResult {
+    fun connect(action: Action, userData: UserData): RequestResult {
         // 서버 켜져있는지 확인 코드 추가 필요
         val connectThread = ConnectThread(action, userData)
         try {
@@ -52,11 +49,11 @@ object HttpRequest {
             connectThread.join(3000)
             return connectThread.getResult()
         } catch (e: Exception) {
-            return ConnectResult.SERVER_ERROR
+            return RequestResult.SERVER_ERROR
         }
     }
 
-    fun connect(action: Action, noticeItem: NoticeItem): ConnectResult {
+    fun connect(action: Action, noticeItem: NoticeItem): RequestResult {
         // 서버 켜져있는지 확인 코드 추가 필요
         val connectThread = ConnectThread(action, noticeItem)
         try {
@@ -66,7 +63,43 @@ object HttpRequest {
             connectThread.join(3000)
             return connectThread.getResult()
         } catch (e: Exception) {
-            return ConnectResult.SERVER_ERROR
+            return RequestResult.SERVER_ERROR
+        }
+    }
+
+    // ID 중복 확인 후 결과 RequestResult 반환
+    // RequestResult.DUPLICATE  ID 중복
+    // RequestResult.NOT_DUPLICATE  ID 사용가능
+    fun checkIdExist(action: Action = Action.CHECK_DUPLICATION , id:String): RequestResult{
+        // 요청 Thread 생성
+        val connectThread = ConnectThread(action, id)
+        return try {
+            // 요청 시작
+            connectThread.start()
+            // 요청 결과 대기 타임아웃 3초
+            connectThread.join(3000)
+            // 요청 결과 반환
+            connectThread.getResult()
+        } catch (e: Exception) {
+            // 에러 발생시 리턴
+            RequestResult.SERVER_ERROR;
+        }
+
+    }
+
+    fun registerAccount(action: Action = Action.REGISTER_ACCOUNT,  userData: UserData):RequestResult{
+        // 요청 Thread 생성
+        val connectThread = ConnectThread(action, userData)
+        return try {
+            // 요청 시작
+            connectThread.start()
+            // 요청 결과 대기 타임아웃 3초
+            connectThread.join(3000)
+            // 요청 결과 반환
+            connectThread.getResult()
+        } catch (e: Exception) {
+            // 에러 발생시 리턴
+            RequestResult.SERVER_ERROR;
         }
     }
 
@@ -79,7 +112,8 @@ object HttpRequest {
         }
     }
 
-    fun getJsonData(action:Action, user:UserData = UserData("",0,"","")): String{
+    // 로그인 요청을 보내고 성공시 해당 유저 데이터 반환
+    fun getUserData(action:Action, user:UserData = UserData("",0,"","")): String{
         val connectThread = ConnectThread(action, user)
         connectThread.start()
         connectThread.join(5000)
@@ -91,25 +125,29 @@ object HttpRequest {
     class ConnectThread(var action: Action) : Thread() {
 
 
-        lateinit var userData: UserData
-        lateinit var noticeItem: NoticeItem
-        private var result = HttpRequest.ConnectResult.SERVER_ERROR
+        private var userData: UserData = UserData("",0,"","")
+        private var noticeItem: NoticeItem = NoticeItem(-1,"","","","")
+        private var result = HttpRequest.RequestResult.SERVER_ERROR
         lateinit var conn: HttpURLConnection
 
+        private var id = ""
         private var type = ""
         private var responseStr = ""
         private var noticeId = -1
-        constructor(action: Action, userData: UserData) : this(action) {
+
+        constructor(action: Action, userData: UserData) : this(action){
             this.userData = userData
         }
-        constructor(action: Action, noticeItem: NoticeItem) : this(action) {
-            this.noticeItem = noticeItem
+
+        constructor(action: Action, id: String) : this(action) {
+            this.id = id
         }
+        constructor(action: Action, noticeItem: NoticeItem) : this(action)
         constructor(action: Action, noticeId:Int) : this(action) {
             this.noticeId = noticeId
         }
 
-        fun getResult(): ConnectResult = result
+        fun getResult(): RequestResult = result
         fun getResultStr(): String = responseStr
 
         override fun run() {
@@ -121,7 +159,7 @@ object HttpRequest {
                 // 요청 종류에 따라 URI, HttpMethod ,Parameter 설정
                 when (action) {
                     Action.CHECK_DUPLICATION -> {
-                        serverUrl = "$SERVER_URI/user/idExist?id=${userData.id}"
+                        serverUrl = "$SERVER_URI/user/idExist?id=${id}"
                         methodType="GET"
                     }
                     Action.REGISTER_ACCOUNT -> {
@@ -147,15 +185,6 @@ object HttpRequest {
                         params.put("date","")
                         methodType="POST"
                         serverUrl = "$SERVER_URI/notice/addNotice"
-                    }
-                    Action.GET_USER_INFO-> {
-                        methodType="POST"
-                        serverUrl = "$SERVER_URI/user/getUserInfo"
-                        params["name"] = userData.name
-                        params["age"] = userData.age
-                        params["id"] = userData.id
-                        params["pwd"] = userData.pwd
-                        params["created"] = ""
                     }
 
                     Action.READ_NOTICE -> {
@@ -191,19 +220,16 @@ object HttpRequest {
                     connectTimeout = 10000;
                     doOutput = true
                 }
-                try {
-                    if((methodType=="POST")||(methodType=="PUT")) {
-                        val bw = BufferedWriter(OutputStreamWriter(conn.outputStream))
-                        bw.write(mapToJson(params))
-                        bw.flush()
-                        bw.close()
-                    }
-                } catch (e: Exception) {
-                    throw e
-                }   // 요청 성공시 처리할 로직
+
+                     if(params.isNotEmpty()) {
+                            val bw = BufferedWriter(OutputStreamWriter(conn.outputStream))
+                            bw.write(mapToJson(params))
+                            bw.flush()
+                            bw.close()
+                     }
+                // 요청 성공시 처리할 로직
                 if (conn.responseCode == HttpURLConnection.HTTP_OK) {
 
-                    try {
                         Log.d(TAG, "요청 성공")
                         val br = BufferedReader(InputStreamReader(conn.inputStream,"UTF-8"))
 
@@ -217,61 +243,30 @@ object HttpRequest {
                         responseStr = sb.toString()
                         println(responseStr)
 
-                        // 응답으로 받은 데이터 처리.
-                        if(action == Action.READ_NOTICE){
-                            return
-                        }
-                        else if (action == Action.REGISTER_ACCOUNT){
-                            result = HttpRequest.ConnectResult.SUCCESS
-                            return
-                        }
-                        else {
                             result = when (action) {
                                 Action.CHECK_DUPLICATION -> {
                                     when (responseStr) {
-                                        "ID_NOT_EXIST" -> HttpRequest.ConnectResult.NOT_DUPLICATE
-                                        "ID_EXIST" -> HttpRequest.ConnectResult.DUPLICATE
-                                        else -> HttpRequest.ConnectResult.FAILED
+                                        "ID_NOT_EXIST" -> RequestResult.NOT_DUPLICATE
+                                        "ID_EXIST" -> RequestResult.DUPLICATE
+                                        else -> RequestResult.FAILED
                                     }
                                 }
-                                Action.LOGIN -> {
-                                    when (responseStr) {
-                                        "SUCCESS" -> HttpRequest.ConnectResult.SUCCESS
-                                        "FAILED" -> HttpRequest.ConnectResult.FAILED
-                                        else -> HttpRequest.ConnectResult.FAILED
-                                    }
-                                }
-                                Action.ADD_NOTICE -> {
-                                    when (responseStr) {
-                                        "SUCCESS" -> HttpRequest.ConnectResult.SUCCESS
-                                        "FAILED" -> HttpRequest.ConnectResult.FAILED
-                                        else -> HttpRequest.ConnectResult.FAILED
-                                    }
-                                }
-                                else -> HttpRequest.ConnectResult.FAILED
-
+                                else -> RequestResult.SUCCESS
                             }
-                        }
 
-                    } catch (e: SocketTimeoutException) {
-                        throw e
-                    } catch (e: Exception) {
-                        throw e
-                    }
                 } else {
-                    result = HttpRequest.ConnectResult.FAILED
+                    result = HttpRequest.RequestResult.FAILED
                     Log.d(TAG, "실패")
                 }
-                conn.disconnect()
-            }catch (e: SocketTimeoutException) {
-                e.printStackTrace()
-                Log.d(TAG, "SERVER 연결 실패")
-                return
             }
             catch (e: Exception) {
                 e.printStackTrace()
                 Log.d(TAG, "SERVER 연결 실패")
                 return
+            }
+            finally {
+                if(conn != null)
+                    conn.disconnect()
             }
         }
 

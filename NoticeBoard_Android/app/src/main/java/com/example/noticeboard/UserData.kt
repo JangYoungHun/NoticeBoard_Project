@@ -1,3 +1,5 @@
 package com.example.noticeboard
 
-data class UserData(var name:String, var age:Int, var id:String, var pwd:String)
+import java.util.*
+
+data class UserData(var name:String, var age:Int, var id:String, var pwd:String, var date: Date = Date())

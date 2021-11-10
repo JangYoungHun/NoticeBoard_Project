@@ -3,6 +3,8 @@ package com.spring.noticeboard.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,9 +31,11 @@ public class NoticeController {
 	
 	//메모를 추가한다
 	@PostMapping("addNotice")
-	private String addNotice(@RequestBody Notice notice) {
-		return noticeService.add(notice) ? "SUCCESS" : "FAILED";
-	}
+	private ResponseEntity<String> addNotice(@RequestBody Notice notice) {
+		return noticeService.add(notice) ?	
+				new ResponseEntity<String>(HttpStatus.OK) 
+				: new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	
 	// 해당하는 id의 메모를 제거 한다
 	@DeleteMapping(value = "{id}")

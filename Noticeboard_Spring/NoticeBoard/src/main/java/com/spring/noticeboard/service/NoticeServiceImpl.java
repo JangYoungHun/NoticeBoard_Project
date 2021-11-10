@@ -12,8 +12,7 @@ import com.spring.noticeboard.dao.NoticeDao;
 import com.spring.noticeboard.dao.NoticeDaoImpl;
 import com.spring.noticeboard.entity.Notice;
 
-
-@Service
+//@Service
 @Transactional(rollbackFor = Exception.class)
 public class NoticeServiceImpl implements NoticeService {
 

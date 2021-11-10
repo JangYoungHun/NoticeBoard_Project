@@ -1,7 +1,6 @@
 package com.example.noticeboard
 
 
-import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -13,7 +12,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.Toast
-import androidx.core.widget.addTextChangedListener
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import kotlinx.android.synthetic.main.fragment_create_account.view.*
@@ -38,28 +36,33 @@ class CreateAccountFragment : Fragment() {
 
         //아이디 중복확인 버튼
         v.btn_idCheck.setOnClickListener {
-            println(" id 중복확인 버튼 클릭")
-            // 중복시 true 중복 아닐시 false 반환
 
-            if(id_validity(v.editText_id.text.toString())) {
+            // 현재 입력한 id (중복확인할 id)
+            val idInput =v.editText_id.text.toString()
 
-
-                when (HttpRequest.connect(HttpRequest.Action.CHECK_DUPLICATION, createUserData())) {
-
-                    HttpRequest.ConnectResult.NOT_DUPLICATE -> {
+            // 입력한 id가 올바른 형식으로 작성되었는지 확인.
+            if(idValidity(idInput)) {
+                //id 중복확인 요청
+                when (HttpRequest.checkIdExist(id = idInput)) {
+                    // 사용가능한 id일 경우
+                    HttpRequest.RequestResult.NOT_DUPLICATE -> {
                         showToast("사용 가능한 아이디 입니다.")
                         println("사용 가능한 아이디 ")
                         id_check = true
                         (it as Button).text = "사용가능"
                     }
-                    HttpRequest.ConnectResult.DUPLICATE -> {
+                    HttpRequest.RequestResult.DUPLICATE -> {
                         showToast("중복된 아이디 입니다.")
                         println("중복된 아이디 ")
+
+                        // 중복확인 결과를 저장한다.
                         id_check = false
+
+                        // 중복확인 버튼의 TEXT를 변경한다.
                         (it as Button).text = "중복확인"
                     }
 
-                    HttpRequest.ConnectResult.SERVER_ERROR -> {
+                    HttpRequest.RequestResult.SERVER_ERROR -> {
                         showToast("서버에 문제가 발생하였습니다.")
                     }
 
@@ -67,6 +70,7 @@ class CreateAccountFragment : Fragment() {
                     }
                 }
             }
+            // 입력한 id가 올바른 형식으로 작성되지 않은 경우
             else
                 showToast("아이디의 길이는 4 이상 10이하 입니다.")
         }
@@ -74,25 +78,25 @@ class CreateAccountFragment : Fragment() {
 
         //가입 버튼 클릭
         v.btn_register.setOnClickListener {
+            // createUserData() 사용자가 입력한 정보로 UserData 객체를 생성하여 반환한다.
+            // 계정 등록 요청을 보낸다.
+            when (HttpRequest.registerAccount(userData = createUserData())) {
 
-            when (HttpRequest.connect(HttpRequest.Action.REGISTER_ACCOUNT, createUserData())) {
-
-                HttpRequest.ConnectResult.SUCCESS -> {
+                HttpRequest.RequestResult.SUCCESS -> {
                     showToast("환영합니다!")
                     println("회원가입 성공")
 
+                    // 로그인 페이지로 이동한다.
                     navController.popBackStack()
                 }
-                HttpRequest.ConnectResult.FAILED -> {
+                HttpRequest.RequestResult.FAILED -> {
                     showToast("회원가입에 실패했습니다")
                     println("회원가입 실패")
                 }
-
-                HttpRequest.ConnectResult.SERVER_ERROR -> {
+                HttpRequest.RequestResult.SERVER_ERROR -> {
                     showToast("서버에 문제가 발생하였습니다.")
                 }
                 else -> {}
-
             }
         }
 
@@ -121,11 +125,11 @@ class CreateAccountFragment : Fragment() {
 
             while(true){
                 delay(300L)
-                var curState = infom_validity()
+                var curState = infomValidity()
                 if(preState != curState) {
                     val handler = Handler(Looper.getMainLooper())
                     handler.post {
-                        v.btn_register.isEnabled = infom_validity()
+                        v.btn_register.isEnabled = infomValidity()
                     }
                     preState = curState
                 }
@@ -134,14 +138,14 @@ class CreateAccountFragment : Fragment() {
     }
 
     //id 조건 확인
-    fun id_validity(id:String) : Boolean{
+    private fun idValidity(id:String) : Boolean{
         //id 길이 제한
         // 4 ~ 10
         return (id.length in 4..10)
     }
 
     //정보를 전부 입력 했는지 확인
-    fun infom_validity() : Boolean {
+    fun infomValidity() : Boolean {
         //각 정보별 문자형식 지정 필요
         //ex 특수문자 길이제한 등
         //password 시 & 있을경우 url에 문제 생길수 있다.

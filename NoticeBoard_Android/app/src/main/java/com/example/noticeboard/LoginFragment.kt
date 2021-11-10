@@ -30,21 +30,23 @@ class LoginFragment : Fragment() {
         val v = (inflater.inflate(R.layout.fragment_login, container, false))
 
 
-        //화원가입 버튼 동작
-
         v.btn_join.setOnClickListener {
             navController.navigate(R.id.action_login_Fragment_to_createAccount_Fragment)
         }
 
         //로그인 버튼 동작
         v.btn_login.setOnClickListener {
+            // 입력한 id
             val id = v.editText_id.text.toString()
+            // 입력한 pwd
             val pwd = v.editText_pwd.text.toString()
 
             if(id != "" && pwd != "") {
+
                 val userData = UserData("", 0, id, pwd)
 
-                val json = HttpRequest.getJsonData(HttpRequest.Action.LOGIN, userData)
+                // 서버에 로그인 확인 요청을 보내고 로그인 성공시 해당 유저의 정보(이름 나이 등) 정보를 받아온다.
+                val json = HttpRequest.getUserData(HttpRequest.Action.LOGIN, userData)
 
                 if(json == ""){
                     println("로그인 실패")
@@ -55,10 +57,12 @@ class LoginFragment : Fragment() {
                     println("로그인 성공")
                     showToast("로그인 성공")
 
+                    // 받아온 json Data를 UserData로 Parsing하고 SharedPreferences를 이용하여 저장한다.
                     var user = Gson().fromJson(json,UserData::class.java)
                     MainActivity.userInfo.setString("id", id.lowercase())
                     MainActivity.userInfo.setString("name",user.name.lowercase())
 
+                    //목록 조회 화면으로 이동
                     navController.navigate(R.id.action_login_Fragment_to_recyclerFragment)
                 }
 

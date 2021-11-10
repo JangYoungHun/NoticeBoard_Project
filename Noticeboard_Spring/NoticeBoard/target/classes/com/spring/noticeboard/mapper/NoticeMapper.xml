@@ -15,7 +15,7 @@
 
 	<select id="getAll"
 		resultType="com.spring.noticeboard.entity.Notice">
-		select * from notice
+		select * from notice order by "date" DESC
 	</select>
 
 	<insert id="add">

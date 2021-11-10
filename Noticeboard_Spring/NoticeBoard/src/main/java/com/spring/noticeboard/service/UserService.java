@@ -6,7 +6,6 @@ import com.spring.noticeboard.entity.User;
 
 public interface UserService {
 
-
 	public void add(User user);
 	
 	public User get(String id);

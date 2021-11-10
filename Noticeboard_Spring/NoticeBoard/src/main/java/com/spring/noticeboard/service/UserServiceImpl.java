@@ -10,7 +10,7 @@ import com.spring.noticeboard.dao.UserDao;
 import com.spring.noticeboard.dao.UserDaoImpl;
 import com.spring.noticeboard.entity.User;
 
-@Service
+//@Service
 @Transactional(rollbackFor = Exception.class)
 public class UserServiceImpl implements UserService{
 
