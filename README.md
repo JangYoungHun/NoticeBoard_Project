@@ -309,6 +309,19 @@ ID 중복 확인 요청을 하는 Connection Thread를 생성하고 실행하는
         }
 ```
 
+### User Controller  
+ID 중복 요청을 처리하는 User Controller  
+
+```java
+	// 아이디 중복확인 요청 처리
+	@RequestMapping("idExist")
+	@ResponseBody
+	public String idExist(@RequestParam String id) {		
+		return userService.isIdExist(id) ?  "ID_EXIST" : "ID_NOT_EXIST";	
+	}
+```
+
+
 ### 회원 가입 버튼  
 회원 가입버튼을 활성화 하기 위해서는 모든 입력칸을 채워야하며, ID 중복확인을 필수적으로 진행 해야만한다.   
 ID 중복확인시 중복확인 버튼의 TEXT가 (중복확인 -> 사용가능) 변경된다.
@@ -419,3 +432,16 @@ createUserData()는 사용자가 입력한 정보로 UserData 객체를 생성�
         }
 ```
 
+### User Controller  
+계정 등록 요청을 처리하는 User Controller  
+
+```java
+	// 사용자 등록 요청 처리
+	@PostMapping("register")
+	@ResponseBody
+	public ResponseEntity<String> register(@RequestBody User user) {
+		return userService.register(user)? 
+				new ResponseEntity<String>(HttpStatus.OK) 
+				: new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);	
+	}
+```
