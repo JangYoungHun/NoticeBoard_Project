@@ -12,6 +12,7 @@ REST 방식을 사용하여 각 요청을 분리하, 요청에 맞는 처리를 
 > + Java
 > + kotlin
 
+
  
 ### Front-End (Android)
 > - Navigation  
@@ -189,18 +190,19 @@ ID 중복 확인 요청을 하는 Connection Thread를 생성하고 실행하는
     // RequestResult.NOT_DUPLICATE  ID 사용가능
     fun checkIdExist(action: Action = Action.CHECK_DUPLICATION , id:String): RequestResult{
         // 요청 Thread 생성
-        val connectThread = ConnectThread(action, id)
-        try {
+
+        return try {
             // 요청 시작
             connectThread.start()
             // 요청 결과 대기 타임아웃 3초
             connectThread.join(3000)
             // 요청 결과 반환
-            return connectThread.getResult()
+            connectThread.getResult()
         } catch (e: Exception) {
             // 에러 발생시 리턴
-            return RequestResult.SERVER_ERROR;
+            RequestResult.SERVER_ERROR;
         }
+
     }
 ```
 ### ConnectThread
@@ -212,7 +214,7 @@ ID 중복 확인 요청을 하는 Connection Thread를 생성하고 실행하는
  class ConnectThread(var action: Action) : Thread() {
 
         private var result = HttpRequest.RequestResult.SERVER_ERROR
-	
+        lateinit var conn: HttpURLConnection
 	// 중복 확인 하려는 ID
         private var id = ""
 	
@@ -307,9 +309,113 @@ ID 중복 확인 요청을 하는 Connection Thread를 생성하고 실행하는
         }
 ```
 
-#### 회원 가입 버튼  
+### 회원 가입 버튼  
 회원 가입버튼을 활성화 하기 위해서는 모든 입력칸을 채워야하며, ID 중복확인을 필수적으로 진행 해야만한다.   
 ID 중복확인시 중복확인 버튼의 TEXT가 (중복확인 -> 사용가능) 변경된다.
+회원 가입 버튼이 활성화되고 버튼을 누르면 회원가입 요청을 시작하고 성공시 로그인화면으로 이동한다.
+
 
 ![캡dasd처](https://user-images.githubusercontent.com/81062639/141126987-0426fab1-36c4-4afe-b383-593b8b304f78.PNG)
+
+### 회원가입 요청
+사용자가 입력한 정보를 User DataBase에 등록하는 요청을 보낸다.  
+
+#### 회원 가입 버튼 클릭 
+회원 가입 버튼을 누르면 HttpRequest의 registerAccount()를 호출하여 서버에 요청을 보낸다.       
+createUserData()는 사용자가 입력한 정보로 UserData 객체를 생성하여 반환하는 함수이다.  
+요청을 받은 서버는 User정보를 DataBase에 등록하고 결과를 반환한다.    
+  
+```kotlin
+        //가입 버튼 클릭
+        v.btn_register.setOnClickListener {
+            // createUserData() 사용자가 입력한 정보로 UserData 객체를 생성하여 반환한다.
+            // 계정 등록 요청을 보낸다.
+            when (HttpRequest.registerAccount(userData = createUserData())) {
+
+                HttpRequest.RequestResult.SUCCESS -> {
+                    showToast("환영합니다!")
+                    println("회원가입 성공")
+                    
+                    // 로그인 페이지로 이동한다.
+                    navController.popBackStack()
+                }
+                HttpRequest.RequestResult.FAILED -> {
+                    showToast("회원가입에 실패했습니다")
+                    println("회원가입 실패")
+                }
+                HttpRequest.RequestResult.SERVER_ERROR -> {
+                    showToast("서버에 문제가 발생하였습니다.")
+                }
+                else -> {}
+            }
+        }
+```
+
+### ConnectThread
+전체적인 코드는 회원가입시 사용했던 ConnectThread와 동일하다. (필요시 상단의 회원가입 ConnectThread 코드 참조)  
+변경되는 부분은 요청 Paremeter와 URI등의 설정 이다.
+
+``` kotlin
+
+  class ConnectThread(var action: Action) : Thread() {
+  	        /*   중략   */		
+        override fun run() {
+            try {
+                // 요청시 전달할 Param 목록
+                val params:MutableMap<String, Any> = mutableMapOf()
+                // 요청 종류에 따라 URI, HttpMethod ,Parameter 설정
+                when (action) {
+                    Action.REGISTER_ACCOUNT -> {
+	    
+		    // 등록할 유저정보
+                        params.put("name",userData.name)
+                        params.put("age",userData.age)
+                        params.put("id",userData.id)
+                        params.put("pwd",userData.pwd)
+                        params.put("created","")
+			
+		    // 요청 URI
+                        serverUrl = "$SERVER_URI/user/register"
+			
+		    // HttpMethod
+                        methodType="POST"
+                    }                 
+		        /*   중략   */			
+                }
+
+                val url: URL = URL(serverUrl)
+                //요청과 관련된 설정
+                conn = (url.openConnection() as HttpURLConnection).apply {
+		
+                    /*  중략  */		    
+                    setRequestProperty(
+                        "Content-Type",  "application/json"
+                    )                  
+                }	
+                     if(params.isNotEmpty()) {
+                            val bw = BufferedWriter(OutputStreamWriter(conn.outputStream))
+			    
+			    // 전달할 파라미터들을 Json 형식으로 변환해주는 함수 mapToJson()
+                            bw.write(mapToJson(params))
+                            bw.flush()
+                            bw.close()
+                     }		     
+                // 요청 성공시 처리할 로직
+                if (conn.responseCode == HttpURLConnection.HTTP_OK) {
+                       /*  중략  */		       
+		       //요청 성공시 
+		       result = HttpRequest.RequestResult.SUCCESS	       
+                } else {
+                    result = HttpRequest.RequestResult.FAILED
+                    Log.d(TAG, "실패")
+                }
+            }
+            catch (e: Exception) {
+               /*  중략  */
+            }
+            finally {
+              /*  중략  */
+            }
+        }
+```
 
