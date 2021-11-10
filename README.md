@@ -42,7 +42,6 @@ REST 방식을 사용하여 각 요청을 분리하, 요청에 맞는 처리를 
 > + 공지를 조회하는 기능
 
 
-
 # APP
 ![포트폴리오-004](https://user-images.githubusercontent.com/81062639/140050235-d32e4334-5595-414e-8c69-69e0a3ae9bcc.png)
 ![005](https://user-images.githubusercontent.com/81062639/140045936-a6d0da49-7b50-419a-9fe9-effae8468c1c.png)
@@ -50,80 +49,12 @@ REST 방식을 사용하여 각 요청을 분리하, 요청에 맞는 처리를 
 ![007](https://user-images.githubusercontent.com/81062639/140045978-5f7421db-8d28-454d-a19a-1f32f9159143.png)
 ![008](https://user-images.githubusercontent.com/81062639/140045982-92c4a182-79fd-4ca7-b92b-df62f3439943.png)
 
-# Server
-
 ## 웹서버 요청 
 웹서버 요청을 하는 object HttpRequest, 매개변수로 Action을 받아 해당하는 로직을 수행하는 Thread 실행
 요청에 필요한 parameter 에 따라 함수가 분류되고 정의 된다.
 
 ![캡처](https://user-images.githubusercontent.com/81062639/140474810-f29ec5ea-afaa-4fbd-92d7-1a6f97232e0b.PNG)
 
-
-
-요청 타입에 따라 Thread를 생성하는 다양한 함수
-```java
-
-// 유저와 관련된 요청을 처리하는 Method
-
-    fun connect(action: Action, userData: UserData): ConnectResult {
-        // Thread 생성
-        val connectThread = ConnectThread(action, userData)
-        try {
-        //Thread 실행
-            connectThread.start()
-            //connectThread.join(3000)
-            
-            //Thread 실행 결과 반환
-            return connectThread.getResult()
-        } catch (e: Exception) {
-            return ConnectResult.SERVER_ERROR
-        }
-    }
-    
-// 메모와 관련된 요청을 처리하는 Method
-     fun connect(action: Action, noticeItem: NoticeItem): ConnectResult{/**/}
-// 메모 관련 중 삭제 요청 메소드     
-     fun delete( noticeId: Int, action: Action = Action.REMOVE_NOTICE){/**/}
-```  
-
-
-## ConnectThread
-
-실제 요청에 필요한 URI를 생성하고 설정한다.  
-요청에 필요한 Parameter 들을 설정하고 실제 요청을 보내 결과를 받아 처리하는 Thread  
-
-
-```java
-
-class ConnectThread{
-
-	/*
-	*
-	* 중략
-	*/
-
-override fun run() {
-
-// 요청시 전달할 Param 목록
-val params:MutableMap<String, Any> = mutableMapOf()
-
-// 요청 종류에 따라 URI, HttpMethod ,Parameter 설정
-when (action){/*...*/}
-                
-val url: URL = URL(serverUrl)
-
-//요청과 관련된 설정과 Connection 생성
-conn = (url.openConnection() as HttpURLConnection).apply {
-/* requestMethod, setRequestProperty 등 설정 */
-}
-
-//요청 성공시 수행할 로직
- if (conn.responseCode == HttpURLConnection.HTTP_OK){/*...*/}
- //요청 실패시 수행할 로직
- else{/*...*/}
- }
-}
-```
 
 ## 요청 ACTION 종류
 ### HttpRequest.action
@@ -135,7 +66,35 @@ conn = (url.openConnection() as HttpURLConnection).apply {
 
 ![HTTPrequest result](https://user-images.githubusercontent.com/81062639/141058153-fa6a9025-16ec-436b-a9a5-e920983042cd.png)
 
-# SERVER
+## Oracle DataBase 구조  
+사용자 관련 데이터를 관리하는 User Table과 메모관련 데이터를 관리하는 Notice Table의 구성이다.  
+
+![oracle](https://user-images.githubusercontent.com/81062639/140054802-8c3c1ace-e637-4279-b589-64e2de7d189d.PNG)  
+
+각각의 Table에 매핑되는 코틀린의 DATA class.  
+
+
+```kotlin
+
+/* 사용자와 관련된 데이터 클래스
+*   name : 사용자 이름
+*   age : 사용자 연령
+*   id : 사용자 id 
+*   pwd : 사용자 password
+*/
+data class UserData(var name:String, var age:Int, var id:String, var pwd:String){}
+
+/*  메모와 관련된 데이터 클래스 
+*   id : 메모 구분 번호
+*   title : 제목
+*   author : 작성자 
+*   body : 내용
+*   date : 최종 수정일
+*/
+data class NoticeItem(var id: Int, var title:String, var author:String, val body:String, var date:String){}
+```
+
+# Server
 ## Notice_Server (구 버전)
 #### spring을 사용하지 않고 자바 코드, 수동 DI를 사용.
 한개의 서블릿이 요청을 받아 요청 타입에 따라 해당하는 함수를 호출하고 그결과를 반한한다.
@@ -151,14 +110,6 @@ ex)
 > + 요청 결과 (String 결과, ResponseEntity),  
 > + DI (@Autowired, Lombok @Setter()),  
 > + DataBase (MySQL,Oracle)
-
-
-## MySQL DataBase (구버전)
-![mysql 구조](https://user-images.githubusercontent.com/81062639/140284252-35fe21dc-a805-4e43-884b-24da5d2545a6.PNG)
-
-
-## Oracle DataBase 구조  
-![oracle](https://user-images.githubusercontent.com/81062639/140054802-8c3c1ace-e637-4279-b589-64e2de7d189d.PNG)  
 
 
 ## REST URI
