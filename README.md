@@ -461,6 +461,28 @@ createUserData()는 사용자가 입력한 정보로 UserData 객체를 생성�
         }
 ```
 
+#### HttpRequest registerAccount()
+유저 계정 등록 요청을 하는 Connection Thread를 생성하고 실행하는 함수  
+
+```kotlin
+   fun registerAccount(action: Action = Action.REGISTER_ACCOUNT,  userData: UserData):RequestResult{
+        // 요청 Thread 생성
+        val connectThread = ConnectThread(action, userData)
+        return try {
+            // 요청 시작
+            connectThread.start()
+            // 요청 결과 대기 타임아웃 3초
+            connectThread.join(3000)
+            // 요청 결과 반환
+            connectThread.getResult()
+        } catch (e: Exception) {
+            // 에러 발생시 리턴
+            RequestResult.SERVER_ERROR;
+        }
+    }
+```
+
+
 ### ConnectThread
 전체적인 코드는 회원가입시 사용했던 ConnectThread와 동일하다. (필요시 상단의 회원가입 ConnectThread 코드 참조)  
 변경되는 부분은 요청 Paremeter와 URI등의 설정 이다.
@@ -541,4 +563,129 @@ createUserData()는 사용자가 입력한 정보로 UserData 객체를 생성�
 			? new ResponseEntity<String>(HttpStatus.OK) 
 			: new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);	
 	}
+```  
+
+
+## 로그인 
+사용자가 입력한 id와 password 정보가 맞는 정보인지 서버에 확인 요청을 보낸다.  
+로그인 성공시 로그인한 사용자의 정보가 Json 형식으로 반환된다.
+해당 Json 데이터를 Gson을 이용하여 UserData로 파싱한다.  
+UserInfo class를 이용하여 Sharedfreferences를 생성 하고 데이터를 저장한다.
+
+
+### UserInfo
+사용자의 로그인 정보를 유지하고 SharedPreferences를 이용하여 저장하고 관리하는 class이다.
+
+```kotlin
+
+class UserInfo(var context: Context) {
+   // 데이터를 저장 할 파일 이름
+    var fileName = "UserInfo"
+	
+    var  sharedPreference = context.getSharedPreferences(fileName,0)
+   
+   // 데이터를 저장하는 함수
+    fun setString(key:String, value:String){
+        val editor = sharedPreference.edit()
+        editor.putString(key, value)
+        editor.apply()
+    }
+     // 데이터를 조회하는 함수
+    fun getString(key:String):String{
+        return sharedPreference.getString(key,"")?:""
+    }
+}
 ```
+
+
+
+### 로그인 버튼 
+로그인 버튼을 누르면 HttpRequest의 getUserData()를 호출하여 서버에 로그인 정보 확인 요청을 보낸다.       
+
+```kotlin
+      //로그인 버튼 동작
+        v.btn_login.setOnClickListener {
+            // 입력한 id
+            val id = v.editText_id.text.toString()
+            // 입력한 pwd
+            val pwd = v.editText_pwd.text.toString()
+
+            if(id != "" && pwd != "") {
+
+                val userData = UserData("", 0, id, pwd)
+                
+                // 서버에 로그인 확인 요청을 보내고 로그인 성공시 해당 유저의 정보(이름 나이 등) 정보를 받아온다.
+                val json = HttpRequest.getUserData(HttpRequest.Action.LOGIN, userData)
+		
+		// 로그인 실패 
+                if(json == ""){
+                    println("로그인 실패")
+                    showToast("로그인 실패")
+                }
+		
+		// 로그인 성공 
+                else{
+                    println("로그인 성공")
+                    showToast("로그인 성공")
+                    
+                    // 받아온 json Data를 UserData로 Parsing하고 SharedPreferences를 이용하여 저장한다.
+                    var user = Gson().fromJson(json,UserData::class.java)
+                    MainActivity.userInfo.setString("id", id.lowercase())
+                    MainActivity.userInfo.setString("name",user.name.lowercase())
+                    
+                    //목록 조회 화면으로 이동
+                    navController.navigate(R.id.action_login_Fragment_to_recyclerFragment)
+                }
+
+            }
+            else
+                showToast("로그인 정보를 입력해주세요")
+        }
+```
+
+#### HttpRequest getUserData()
+유저 계정 등록 요청을 하는 Connection Thread를 생성하고 실행하는 함수  
+
+```java
+   // 로그인 요청을 보내고 성공시 해당 유저 데이터 반환
+    fun getUserData(action:Action, user:UserData = UserData("",0,"","")): String{
+        val connectThread = ConnectThread(action, user)
+        connectThread.start()
+        connectThread.join(5000)
+        return URLDecoder.decode(connectThread.getResultStr(),"utf-8")
+    }
+```
+### ConnectThread
+전체적인 코드는 필요시 상단의 회원가입 ConnectThread 코드 참조
+변경되는 부분(Paremeter와 URI등의 설정)   
+요청 성공시 : HttpRequest.RequestResult.SUCCESS  
+요청 실패시 : HttpRequest.RequestResult.FAILED  
+
+```kotlin
+ class ConnectThread(var action: Action) : Thread() {
+	
+	/*  중략  */
+	
+        override fun run() {
+            try {
+                var message: String = ""
+                // 요청시 전달할 Param 목록
+                val params:MutableMap<String, Any> = mutableMapOf()
+
+                when (action) {
+                      Action.LOGIN -> {
+		      // 확인 할 로그인 
+                        params.put("id",userData.id )
+                        params.put("pwd",userData.pwd)
+                        methodType="POST"
+		      //요청 URI
+                        serverUrl = "$SERVER_URI/user/login"
+                    }           
+                }
+		
+	/*  중략  */
+	
+        }
+```
+
+
