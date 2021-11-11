@@ -734,7 +734,7 @@ class UserInfo(var context: Context) {
 
 
 ### 메모 목록 조회
-메모들의 목록을 조회하는 요청을 보내고 요청의 결과로 Json 데이터를 받아 처리하여 RecyclerView에 보여준다.
+메모들의 목록을 조회하는 요청을 보내고 요청의 결과로 Json 데이터를 받아 처리하여 RecyclerView에 보여준다.  
 주의( HttpRequest.getNotices() 와 getNotices() 는 이름이 같지만 다른 클래스의 함수이다.)
  
  
@@ -806,4 +806,19 @@ class UserInfo(var context: Context) {
         }
 ```
 
+### 메모 추가 버튼
+현재 화면에 보이는 메모의 갯수를 확인하고 최대 갯수를 초과하지 않는경우 메모를 추가하는 화면으로 이동하고 최대 갯수 초과시 관련 Toast메세지를 띄운다.
 
+```kotlin
+	// 메모 추가 버튼 클릭 이벤트 등록
+        v.btn_floating.setOnClickListener {
+	    //최대 갯수 검사
+            if (adapter.itemCount() < 20){
+	       //  메모 추가 창으로 이동한다.
+                navController.navigate(R.id.action_recyclerFragment_to_memoFragment)
+	    }
+	    
+            else
+                showToast("메모 최대갯수 제한")
+        }
+```
