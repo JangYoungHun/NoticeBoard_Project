@@ -586,7 +586,7 @@ createUserData()는 사용자가 입력한 정보로 UserData 객체를 생성�
 사용자가 입력한 id와 password 정보가 맞는 정보인지 서버에 확인 요청을 보낸다.  
 로그인 성공시 로그인한 사용자의 정보가 Json 형식으로 반환된다.
 해당 Json 데이터를 Gson을 이용하여 UserData로 파싱한다.  
-UserInfo class를 이용하여 Sharedfreferences를 생성 하고 데이터를 저장한다.
+UserInfo class를 이용하여 Sharedpreferences를 생성 하고 데이터를 저장한다.
 
 
 ![로그인화면](https://user-images.githubusercontent.com/81062639/141233039-567912f0-35f9-4e3c-97da-7feafff39fd8.PNG)
@@ -868,6 +868,19 @@ class UserInfo(var context: Context) {
         }
 ```
 
+
+### Notice Controller  
+메모 목록을 조회하는 요청을 처리하는 Notice Controller  
+
+```java
+	//메모 목록을 받아온다
+	@RequestMapping("getNotices")
+	private List<Notice> getNotices() {
+		return noticeService.getAll();
+	}		
+```
+
+
 ### 메모 추가 버튼
 현재 화면에 보이는 메모의 갯수를 확인하고 최대 갯수를 초과하지 않는경우 메모를 추가하는 화면으로 이동하고 최대 갯수 초과시 관련 Toast메세지를 띄운다.
 
@@ -884,3 +897,124 @@ class UserInfo(var context: Context) {
                 showToast("메모 최대갯수 제한")
         }
 ```
+
+
+
+
+## 메모 추가
+메모의 제목과 내용을 입력하고 확인 버튼을 누르면 메모 추가 요청을 보내고 요청의 결과를 받아온다.  
+
+![메모 추가화면](https://user-images.githubusercontent.com/81062639/141237682-007a6d7c-fb25-49db-90c1-71233328af32.PNG)
+
+### 작성한 메모 등록 요청  
+사용자가 입력한 제목, 내용의 메모를 등록한다.    
+작성자의 정보는 SharedPreferences에 저장된 사용자의 id로 처리한다.  
+HttpRequest.addNotice() 를 호출하여 요청을 처리하고 결과를 반환한다.  
+
+```kotlin
+ //확인 버튼 클릭 이벤트, 메모 등록 요청을 처리한다.
+        v.btn_ok.setOnClickListener {
+
+            // 사용자가 입력한 제목
+            val title = v.editText_title.text.toString()
+            // 사용자가 입력한 내용
+            val body = v.editText_body.text.toString()
+
+            when{
+                // 사용자가 입력한 내용이 있는지 확인한다.
+                title=="" ->{
+                    showToast("제목을 입력해주세요.")
+                }
+                body=="" ->{
+                    showToast("내용을 입력해주세요.")
+                }
+                // 사용자가 모든 내용을 입력했을 때 처리할 내용이다.
+                else ->{
+                    // 사용자가 입력한 내용과 Sharedpreferences에 있는 사용자의 id정보를 이용하여 NoticeItem을 생성한다.
+                    val item = NoticeItem(0,title, MainActivity.userInfo.getString("id"),body, "")
+
+                        // 웹서버에 memo 추가 요청 보내고 결과를 받아와 처리한다.
+                        when (HttpRequest.addNotice(HttpRequest.Action.ADD_NOTICE, item)) {
+
+                            HttpRequest.RequestResult.SUCCESS -> {
+                                showToast("메모 추가 성공")
+                            }
+                            HttpRequest.RequestResult.FAILED -> {
+                                showToast("메모 추가 실패")
+                            }
+                            HttpRequest.RequestResult.SERVER_ERROR -> {
+                                showToast("서버에 문제가 발생하였습니다.")
+                            }
+                        }
+                    // 목록 조회 화면으로 이동한다.
+                    navController.popBackStack()
+                }
+                }
+            }
+```
+### HttpRequest.addNotice() 
+메모를 추가하는 요청을 보내는 Thread를 생성하고 실행하는 함수
+
+```kotlin
+    // 메모를 추가하는 요청을 처리하는 Thread 생성, 시작.  요청의 결과를 반환 
+    fun addNotice(action: Action = Action.ADD_NOTICE, noticeItem: NoticeItem): RequestResult {
+        
+        val connectThread = ConnectThread(action, noticeItem)
+        return try {
+            connectThread.start()
+            connectThread.join(3000)
+            connectThread.getResult()
+        } catch (e: Exception) {
+            RequestResult.SERVER_ERROR
+        }
+    }
+```
+
+### ConnectThread
+전체적인 코드는 필요시 상단의 회원가입 ConnectThread 코드 참조  
+변경되는 부분(Paremeter와 URI등의 설정)  
+요청 성공시 : HttpRequest.RequestResult.SUCCESS    
+요청 실패시 : HttpRequest.RequestResult.FAILED    
+
+```kotlin
+ class ConnectThread(var action: Action) : Thread() {
+	
+	/*  중략  */
+	
+        override fun run() {
+            try {
+                var message: String = ""
+                // 요청시 전달할 Param 목록
+                val params:MutableMap<String, Any> = mutableMapOf()
+
+                when(action) {
+		// 등록할 메모의 정보를 Parameter로 전달한다.
+                    Action.ADD_NOTICE -> {
+                        params["title"] = noticeItem.title
+                        params["author"] = noticeItem.author
+                        params["body"] = noticeItem.body
+                        params["date"] = ""
+                        methodType="POST"
+                        serverUrl = "$SERVER_URI/notice/addNotice"
+                    }
+                }
+		
+	/*  중략  */
+		
+
+        }
+```
+
+### Notice Controller  
+메모를 등록 하는 요청을 처리하는 Notice Controller  
+
+```java
+	//메모를 추가한다
+	@PostMapping("addNotice")
+	private ResponseEntity<String> addNotice(@RequestBody Notice notice) {
+		return noticeService.add(notice) ?	
+			new ResponseEntity<String>(HttpStatus.OK) 
+			: new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}		
+```
+
