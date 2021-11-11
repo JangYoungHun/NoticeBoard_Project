@@ -106,21 +106,25 @@ ex)
 ```java
 
 public interface UserMapper {
-
-	@Select("insert into userdata (id, pwd, name, age) "
-			+ "values(#{id}, #{pwd}, #{name}, #{age})")
 	
+	// 사용자를 추가한다.
+	@Select("insert into userdata (id, pwd, name, age) "
+			+ "values(#{id}, #{pwd}, #{name}, #{age})")	
 	public void add(User user) throws RuntimeException;
 
+	// 해당하는 id의 사용자 정보를 조회한다.
 	@Select("select * from userdata where id=#{id}")
 	public User get(String id) throws RuntimeException;
 
+	// 전체 유저의 수를 조회한다.
 	@Select("select count(*) from userdata")
 	public int getCount() throws RuntimeException;
 	
+	// 전체 유저 정보를 조회한다.
 	@Select("select * from userdata")
 	public List<User> getAll() throws RuntimeException;
 	
+	// 체 유저정보를 삭제한다.
 	@Delete("Delete from userdata")
 	public void deleteAll() throws RuntimeException;
 }
@@ -133,18 +137,25 @@ public interface UserMapper {
 ```java
 public interface NoticeMapper {
 	
+	// 메모를 추가한다.
 	public int add(Notice notice);
 	
+	//메모를 수정한다.
 	public int update(Notice notice);
 	
+	// 해당하는 id의 메모를 삭제한다.
 	public int delete(int id);
- 
+ 	
+	// 해당하는 id의 메모 정보를 조회한다.
 	public Notice get(int id);
-		
+	
+	//전체 메모의 갯수를 조회한다.	
 	public int getCount();
-
+	
+	//전체 메모의 목록을 조회한다.
 	public List<Notice> getAll() throws RuntimeException;
 	
+	// 메모를 전부 삭제한다.
 	public void deleteAll();
 }
 ```
