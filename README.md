@@ -1018,3 +1018,178 @@ HttpRequest.addNotice() 를 호출하여 요청을 처리하고 결과를 반환
 		}		
 ```
 
+
+## 메모 수정, 삭제
+메모 목록 조회 화면에서 메모를 클릭할 경우 개별 메모 조회 화면으로 이동한다.    
+Sharedpreferences에 저장된 현재 사용자의 정보와 메모 작성자의 정보가 일치하면 메모를 수정, 삭제 할 수있다.  
+아래 사진은 test 라는 유저로 로그인하여 공지를 확인 하는 사진이다.  
+ 
+왼쪽 사진은 자신이 작성한 메모를 조회하는 화면이다. 제목과 내용을 클릭하여 메모의 내용을 수정할 수 있다.  하단의 삭제 버튼이 존재한다.  
+오른쪽사진은 자신이 작성하지않은 다른 유저의 메모를 조회하는 화면이다. 수정이 불가능하고 하단의 삭제 버튼이 존재하지 않는다.  
+
+![수정삭제비교](https://user-images.githubusercontent.com/81062639/141239662-53069665-69fa-486a-b761-d6d0ac6b52ac.png)
+
+
+## 수정 요청
+자신이 작성한 메모를 조회하고 내용을 수정, 확인 버튼을 클릭시 서버에 메모 수정 요청을 보낸다.  
+HttpRequest.updateNotice()를 호출한다.  
+
+```kotlin
+   //확인 버튼 클릭 이벤트
+        v.btn_Ok.setOnClickListener {
+            // argument로 조회한 메모의 정보가 전달된다.
+            // 조회한 내용의 메모와 현재 메모의 내용을 비교하여 변경된 내용이 있는지 확인한다.
+            if((v.et_title.text.toString() != arguments?.getString("title")!!)
+                || v.et_body.text.toString() != arguments?.getString("body")!!) {
+
+                // 변경된 내용이 있다면 메모의 작성자와 구분 id, 변경된 내용으로 새로운 NoticeItem을 생성한다.
+                val item = NoticeItem(
+                    arguments?.getInt("id")!!,
+                    v.et_title.text.toString(),
+                    arguments?.getString("author")!!,
+                    v.et_body.text.toString(),
+                    ""
+                )
+                // 메모 수정 요청을 보낸다.
+                HttpRequest.updateNotice(HttpRequest.Action.UPDATE_NOTICE, item)
+            }
+            navController.popBackStack()
+        }
+```
+
+### HttpRequest.updateNotice()
+메모를 수정하는 요청을 보내는 Thread를 생성하고 실행하는 함수
+
+```kotlin
+   // 메모를 수정하는 요청을 처리하는 Thread 생성, 시작.
+    fun updateNotice(action: Action = Action.UPDATE_NOTICE, noticeItem: NoticeItem): RequestResult {
+
+        val connectThread = ConnectThread(action, noticeItem)
+        return try {
+            connectThread.start()
+            // 타임 아웃
+            connectThread.join(3000)
+            connectThread.getResult()
+        } catch (e: Exception) {
+            RequestResult.SERVER_ERROR
+        }
+    }
+```
+### ConnectThread
+전체적인 코드는 필요시 상단의 회원가입 ConnectThread 코드 참조  
+변경되는 부분(Paremeter와 URI등의 설정)  
+
+```kotlin
+ class ConnectThread(var action: Action) : Thread() {
+	
+	/*  중략  */
+	
+        override fun run() {
+            try {
+                var message: String = ""
+                // 요청시 전달할 Param 목록
+                val params:MutableMap<String, Any> = mutableMapOf()
+
+                when(action) {		
+		  Action.UPDATE_NOTICE ->{
+                        // 수정할 메모의 정보를 Parameter로 전달한다.
+                        params["title"] = noticeItem.title
+                        params["author"] = noticeItem.author
+                        params["body"] = noticeItem.body
+                        params["date"] = ""
+
+                        methodType="PUT"
+                        serverUrl = "$SERVER_URI/notice/${noticeItem.id}"
+                    }
+                }
+		
+	/*  중략  */		
+
+        }
+```
+
+### Notice Controller  
+메모를 수정 하는 요청을 처리하는 Notice Controller 
+
+```kotlin
+//해당 하는 id의 메모를 수정 한다
+	@PutMapping(value = "{id}")
+	public void update(@PathVariable("id")int id, @RequestBody Notice notice){		
+		notice.setId(id);
+		noticeService.update(notice);
+	}
+```
+
+
+## 삭제 요청
+현재 조회하고 있는 메모를 삭제하는 요청을 보낸다.
+HttpRequest.delete()를 호출한다.  
+
+```kotlin
+  // 작성자와 현재 사용자가 같을경우 삭제 버튼 활성화
+   // isAuthor은 현재 사용자와 작성자가 같은지 확인하는 boolean 타입의 변수이다.
+        if(isAuthor){
+            v.btn_Remove.visibility = View.VISIBLE
+        }
+	
+        // 삭제 버튼 클릭 이벤트
+        v.btn_Remove.setOnClickListener {           
+            if(isAuthor) {
+                HttpRequest.delete(arguments?.getInt("id")!!)
+                navController.popBackStack()
+            }
+        }
+```
+
+### HttpRequest.delete()
+메모를 삭제하는 요청을 보내는 Thread를 생성하고 실행하는 함수
+
+```kotlin
+    fun delete( noticeId: Int, action: Action = Action.REMOVE_NOTICE) {      
+        val connectThread = ConnectThread(action, noticeId)
+        try {
+            connectThread.start()
+        } catch (e: Exception) {
+        }
+    }
+```
+### ConnectThread
+전체적인 코드는 필요시 상단의 회원가입 ConnectThread 코드 참조  
+변경되는 부분(Paremeter와 URI등의 설정)  
+  
+
+```kotlin
+ class ConnectThread(var action: Action) : Thread() {
+	
+	/*  중략  */
+	
+        override fun run() {
+            try {
+                var message: String = ""
+                // 요청시 전달할 Param 목록
+                val params:MutableMap<String, Any> = mutableMapOf()
+
+                when(action) {		
+			Action.REMOVE_NOTICE ->{
+                        	methodType="DELETE"
+                       	        serverUrl = "$SERVER_URI/notice/${noticeId}"
+                  	  }
+                }
+		
+	/*  중략  */		
+
+        }
+```
+
+
+### Notice Controller  
+메모를 삭제 하는 요청을 처리하는 Notice Controller 
+
+```kotlin
+
+	// 해당하는 id의 메모를 제거 한다
+	@DeleteMapping(value = "{id}")
+	public void remove(@PathVariable int id) {
+		noticeService.delete(id);
+	}
+```
