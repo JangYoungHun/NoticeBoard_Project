@@ -37,10 +37,10 @@ REST 방식을 사용하여 각 요청을 분리하, 요청에 맞는 처리를 
 > + 게시글을 수정 삭제 할 수 있는 권한 처리 (작성자만 수정, 삭제할 수 있다.) 
 > 
 ### NOTICE 관련
-> + 새로운 공지를 작성하고 추가하는 기능
-> + 기존의 공지 사항을 수정하고 최종 수정 날짜를 업데이트하는 기능
-> + 공지를 삭제하는 기능
-> + 공지를 조회하는 기능
+> + 새로운 메모를 작성하고 추가하는 기능
+> + 기존의 메모를 수정하고 최종 수정 날짜를 업데이트하는 기능
+> + 메모를 삭제하는 기능
+> + 메모를 조회하는 기능
 
 
 # APP
@@ -229,6 +229,10 @@ public interface NoticeMapper {
 
 
 ## 회원 가입
+
+![회원가입 화면](https://user-images.githubusercontent.com/81062639/141233090-9688edd8-232f-44b8-afd8-c0e35590b0aa.PNG)
+
+
 
 ### ID 중복 확인 요청
 회원 가입 화면에서 원하는 id를 입력하고 id 중복확인 버튼을 누르면 해당 id 의 존재 여부를 확인하기 위해  
@@ -495,7 +499,8 @@ createUserData()는 사용자가 입력한 정보로 UserData 객체를 생성�
 
 
 ### ConnectThread
-전체적인 코드는 회원가입시 사용했던 ConnectThread와 동일하다. (필요시 상단의 회원가입 ConnectThread 코드 참조)  
+전체적인 코드는 회원가입시 사용했던 ConnectThread와 동일하다.  
+(필요시 상단의 회원가입 ConnectThread 코드 참조)    
 변경되는 부분은 요청 Paremeter와 URI등의 설정 이다.
 
 ``` kotlin
@@ -584,6 +589,10 @@ createUserData()는 사용자가 입력한 정보로 UserData 객체를 생성�
 UserInfo class를 이용하여 Sharedfreferences를 생성 하고 데이터를 저장한다.
 
 
+![로그인화면](https://user-images.githubusercontent.com/81062639/141233039-567912f0-35f9-4e3c-97da-7feafff39fd8.PNG)
+
+
+
 ### UserInfo
 사용자의 로그인 정보를 유지하고 SharedPreferences를 이용하여 저장하고 관리하는 class이다.
 
@@ -667,10 +676,10 @@ class UserInfo(var context: Context) {
     }
 ```
 ### ConnectThread
-전체적인 코드는 필요시 상단의 회원가입 ConnectThread 코드 참조
-변경되는 부분(Paremeter와 URI등의 설정)   
-요청 성공시 : HttpRequest.RequestResult.SUCCESS  
-요청 실패시 : HttpRequest.RequestResult.FAILED  
+전체적인 코드는 필요시 상단의 회원가입 ConnectThread 코드 참조  
+변경되는 부분(Paremeter와 URI등의 설정)     
+요청 성공시 : HttpRequest.RequestResult.SUCCESS    
+요청 실패시 : HttpRequest.RequestResult.FAILED    
 
 ```kotlin
  class ConnectThread(var action: Action) : Thread() {
@@ -702,7 +711,6 @@ class UserInfo(var context: Context) {
 ### User Controller  
 로그인 정보를 확인하는 요청을 처리하는 User Controller  
 
-
 ```java
 	// 로그인 정보확인 Service
 	@PostMapping("login")
@@ -716,4 +724,86 @@ class UserInfo(var context: Context) {
 	}
 	
 ```
+
+## 메모 조회
+로그인을 성공적으로 완료하면 작성된 메모를 조회 할 수 있는 화면으로 이동한다.  
+조회한 메모를 조회하는 화면과 우측하단의 새로운 메모 작성 버튼, 우측 상단의 새로고침 버튼으로 구성 되어있다.
+
+
+![dasd](https://user-images.githubusercontent.com/81062639/141232817-37106358-eaaa-4c72-bd78-ff6345a19e39.PNG)
+
+
+### 메모 목록 조회
+메모들의 목록을 조회하는 요청을 보내고 요청의 결과로 Json 데이터를 받아 처리하여 RecyclerView에 보여준다.
+주의( HttpRequest.getNotices() 와 getNotices() 는 이름이 같지만 다른 클래스의 함수이다.)
+ 
+ 
+```kotlin
+
+    private fun getNotices(): ArrayList<NoticeItem> {
+	// 메모 정보를 담을 List
+        var itemlist: ArrayList<NoticeItem> = ArrayList()
+
+        // 요청의 결과로 Json 메모들의 데이터를 받아온다.
+        val json = HttpRequest.getNotices()
+        println(json)
+
+        // 데이터가 존재하는지 확인한다.
+        if(json != "") {
+            val jsonArray = JSONArray(json)
+
+            for (i in 0 until jsonArray.length()) {
+                // Json 데이터를 메모데이터를 관리하는 NoticeItem 으로 Parsing 한다.
+                var jsonObject = jsonArray.getJSONObject(i)
+                itemlist.add(
+                    NoticeItem(
+                        jsonObject.getInt("id"),
+                        jsonObject.getString("title"),
+                        jsonObject.getString("author"),
+                        jsonObject.getString("body"),
+                        jsonObject.getString("date")
+                    )
+                )
+            }
+        }
+        // 메모들의 정보 리스트를 반환한다.
+        return itemlist
+    }   
+    
+    // 메모 조회 요청과 결과를 처리하는 함수를 호출한다. (상단의 getNotices() 함수)
+    val itemList = getNotices()
+ 
+    if (itemList.isNotEmpty()){
+        // 반환된 메모 List 가 비어있지 않다면 RecyclerAdapter에 해당 List를 등록한다.
+	// adapter : RecylerAdapter 이다.
+       adapter.setItemList(getNotices())
+       }
+
+    
+```
+
+### 새로고침 버튼
+새로고침 버튼을 누르면 데이터베이스에 메모 목록 조회요청을 다시 보내 최신의 정보를 받아 화면을 업데이트한다.
+
+```kotlin
+//  상단의 툴바의 클릭 이벤트를 등록한다.
+        v.toolbar.setOnMenuItemClickListener {
+	// 툴바의 항목이 클릭됬을때 어떤 요소가 클릭되었는지에 따라 처리를 달리한다.
+            when (it.itemId) {
+                //새로고침 Menu를 클릭했을때 이벤트
+                R.id.menu1 -> {
+                    showToast("새로고침")
+		    // getNotices()를 다시 호출하여 최신의 정보를 받아와 처리해 생성한 List를 adapter에 등록한다.
+                    adapter.setItemList(getNotices())
+		    
+		    // adapter에게 List의 요소가 변경되었다는 사실을 알린다.
+                    adapter.notifyDataSetChanged()
+		    
+                    true
+                }
+                else -> false
+            }
+        }
+```
+
 
