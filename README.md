@@ -663,7 +663,7 @@ class UserInfo(var context: Context) {
         }
 ```
 
-#### HttpRequest getUserData()
+### HttpRequest getUserData()
 유저 계정 등록 요청을 하는 Connection Thread를 생성하고 실행하는 함수  
 
 ```java
@@ -781,6 +781,68 @@ class UserInfo(var context: Context) {
 
     
 ```
+
+### HttpRequest getNotices()
+메모 목록 조회 요청을 작성, 수행하고 결과로 Json 데이터를 반환하는 함수
+
+```kotlin
+   // 메모 목록 조회 요청을 보내고 메모들의 데이터를 Json 형식으로 받아온다.
+    fun getNotices(action:Action = Action.READ_NOTICE): String{
+        val connectThread = ConnectThread(action)
+        connectThread.start()
+	
+        //타임 아웃
+        connectThread.join(5000)
+	
+	// 메모들의 데이터 Json을 반환한다.
+        return URLDecoder.decode(connectThread.getResultStr(),"utf-8")
+    }
+```
+
+### ConnectThread
+전체적인 코드는 필요시 상단의 회원가입 ConnectThread 코드 참조  
+변경되는 부분(Paremeter와 URI등의 설정)
+```kotlin
+ class ConnectThread(var action: Action) : Thread() {
+	
+	/*  중략  */
+	
+        override fun run() {
+            try {
+                var message: String = ""
+                // 요청시 전달할 Param 목록
+                val params:MutableMap<String, Any> = mutableMapOf()
+
+                when(action) {
+                    Action.READ_NOTICE -> {
+                    methodType="GET"
+                    serverUrl = "$SERVER_URI/notice/getNotices"
+                    }       
+                }
+		
+	/*  중략  */
+		
+	   // 요청 성공 시	
+	   if (conn.responseCode == HttpURLConnection.HTTP_OK) {
+
+                    Log.d(TAG, "요청 성공")
+                    val br = BufferedReader(InputStreamReader(conn.inputStream,"UTF-8"))
+
+                    //응답으로 받은 데이터 처리
+                    var sb:StringBuilder = StringBuilder()
+                    while (true) {
+                        val str: String = br.readLine() ?: break
+                        sb.append(str)
+                    }
+                    br.close()
+                    responseStr = sb.toString()	
+		    
+	/*  중략  */
+        }
+```
+
+
+
 
 ### 새로고침 버튼
 새로고침 버튼을 누르면 데이터베이스에 메모 목록 조회요청을 다시 보내 최신의 정보를 받아 화면을 업데이트한다.
